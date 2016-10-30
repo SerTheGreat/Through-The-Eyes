@@ -18,6 +18,13 @@ namespace FirstPerson
 		public bool isFirstPerson;
 		private FPGUI fpgui;
 		private CameraState cameraState;
+		private float yaw = 0f;
+		private float pitch = 0f;
+		private float maxLatitude = 45.0F; // Don't allow further motion that this (degrees)
+		private float maxAzimuth = 60.0F;
+		private Vector3 eyeOffset = Vector3.zero;//Vector3.forward * 0.1F; //Eyes don't exist at a point when you move your head
+		private Vector3 headLocation = Vector3.up * .35f; // Where the centre of the head is
+		private Quaternion fixedRotation = new Quaternion();
 
         public FirstPersonEVA()
         {
@@ -35,19 +42,19 @@ namespace FirstPerson
             {
                 if (!isFirstPerson)
                 {
-					KerbalEVA evaInst = pVessel.evaController;
-                    
-					Component[] components = pVessel.transform.GetComponentsInChildren(typeof(Transform));
+					/*Component[] components = pVessel.transform.GetComponentsInChildren(typeof(Transform));
 					for (int i = 0; i < components.Length; i++)
                     {
 						Component component = components[i];
 						if (component.name.Contains("helmetCollider")) { flightCam.transform.parent.parent = component.transform; }
-                    }
-					
+                    }*/
+
+					flightCam.transform.parent = FlightGlobals.ActiveVessel.transform;
+
 					enableRenderers(pVessel.transform, false);
 
                     kerbal = pVessel;
-                    flightCam.maxPitch = .98f;
+                    /*flightCam.maxPitch = .98f;
                     flightCam.minPitch = -.98f;
                     flightCam.pivotTranslateSharpness = 50;
                     flightCam.minHeight = 0f;
@@ -56,13 +63,18 @@ namespace FirstPerson
                     flightCam.minDistance = 0.01f;
                     flightCam.maxDistance = 0.01f;
                     flightCam.startDistance = 0.01f;
-                    flightCam.SetDistanceImmediate(0.01f);
-					flightCam.mainCamera.nearClipPlane = 0.01f;
+                    flightCam.SetDistanceImmediate(0.01f);*/
 					//evaInst.animation.cullingType = AnimationCullingType.AlwaysAnimate;
+					flightCam.mainCamera.nearClipPlane = 0.01f;
                     isFirstPerson = true;
 					if (showSightAngle) {
 						fpgui = flightCam.gameObject.AddOrGetComponent<FPGUI>();
 					}
+					flightCam.SetTargetNone();
+					flightCam.DeactivateUpdate();
+					yaw = 0f;
+					pitch = 0f;
+					reorient();
                 }
             }
             else
@@ -87,6 +99,7 @@ namespace FirstPerson
 				if (renderer.name.Contains("headMesh") || 
 				    renderer.name.Contains("eyeball") || 
 				    renderer.name.Contains("upTeeth") || 
+					renderer.name.Contains("downTeeth") || 
 				    renderer.name.Contains("pupil")
 				   ) {
 					renderer.enabled = enable;
@@ -116,6 +129,7 @@ namespace FirstPerson
 			{
 				flightCam.SetTargetTransform(pVessel.transform);
 			}
+			flightCam.ActivateUpdate();
 
 			isFirstPerson = false;
 		}
@@ -173,17 +187,53 @@ namespace FirstPerson
                 }
 
 				if (isFirstPerson && fpgui != null) {
-					float yawAngle = VectorUtils.SignedAngleBetween(
-						pVessel.evaController.referenceTransform.up, 
-						VectorUtils.ProjectVectorOnPlane(pVessel.evaController.referenceTransform.forward, flightCam.transform.forward),
-						pVessel.evaController.referenceTransform.forward);
-
-					fpgui.yawAngle = yawAngle;
-					fpgui.pitchAngle = flightCam.getPitch();
+					fpgui.yawAngle = -yaw;
+					fpgui.pitchAngle = -pitch;
 				}
 
             }
         }
+
+		void FixedUpdate() {
+			if (isFirstPerson) {
+				if(Input.GetMouseButton(1)) { // Right Mouse Button Down
+					//Change the angles by the mouse movement
+					yaw += Input.GetAxis("Mouse X");
+					pitch += Input.GetAxis("Mouse Y");
+					if (Mathf.Abs(yaw) > maxAzimuth) {
+						yaw = maxAzimuth * Mathf.Sign(yaw);
+					}
+					if (Mathf.Abs(pitch) > maxLatitude) {
+						pitch = maxLatitude * Mathf.Sign(pitch);
+					}
+					reorient();
+					fixedRotation = FlightCamera.fetch.transform.rotation;
+				} //button held down
+
+				if (FlightGlobals.ActiveVessel.Landed && (GameSettings.EVA_back.GetKey() || GameSettings.EVA_forward.GetKey())) {
+					yaw = 0f;
+					pitch = 0f;
+					FlightCamera.fetch.transform.rotation = fixedRotation;
+				}
+
+				if (FlightGlobals.ActiveVessel.Landed && (GameSettings.EVA_back.GetKeyUp() || GameSettings.EVA_forward.GetKeyUp())) {
+					yaw = 0f;
+					pitch = 0f;
+					reorient();
+				}
+
+			}
+		}
+
+		private void reorient() {
+			Quaternion rotation = Quaternion.Euler(0.0F, yaw, 0.0F) * Quaternion.Euler(-pitch, 0.0F, 0.0F);
+			Vector3 cameraForward = rotation * Vector3.forward;
+			Vector3 cameraUp = rotation * Vector3.up;
+			Vector3 cameraPosition = headLocation + rotation * eyeOffset;
+			FlightCamera flightCam = FlightCamera.fetch;
+			flightCam.transform.localRotation = Quaternion.LookRotation(cameraForward, cameraUp);
+			flightCam.transform.localPosition = cameraPosition;
+		}
 
     }
     

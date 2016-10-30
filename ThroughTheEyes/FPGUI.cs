@@ -66,7 +66,7 @@ namespace FirstPerson
 			}
 
 			//Draw vertical ticks:
-			repeats = Mathf.RoundToInt(Math.Abs(pitchAngle) / (56 / (0.5f / (TICK_HEIGHT + TICK_GAP))));
+			repeats = Mathf.RoundToInt(Math.Abs(pitchAngle) / (90 / (0.5f / (TICK_HEIGHT + TICK_GAP))));
 			for (int i = 0; i < repeats; ++i)
 			{
 				if (i == 0) {

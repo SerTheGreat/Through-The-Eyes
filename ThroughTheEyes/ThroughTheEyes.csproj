@@ -47,7 +47,6 @@
     <Compile Include="FirstPersonEVA.cs" />
     <Compile Include="FPGUI.cs" />
     <Compile Include="KeyControls.cs" />
-    <Compile Include="VectorUtils.cs" />
     <Compile Include="ThroughTheEyes.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

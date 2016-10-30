@@ -1,4 +1,5 @@
 ﻿using System;
+using UnityEngine;
 
 namespace FirstPerson
 {
@@ -16,6 +17,7 @@ namespace FirstPerson
 		private float origMinHeightAtMaxDist=1000f;
 		private float origMinHeightAtMinDist=.3f;
 		private float origNearClipPlane = 0.5f;
+		private Transform origParent = null;
 
 		public void saveState(FlightCamera flightCam) {
 			origMinPitch = flightCam.minPitch;
@@ -28,6 +30,7 @@ namespace FirstPerson
 			origMaxDistance = flightCam.maxDistance;
 			origStartDistance = flightCam.startDistance;
 			origNearClipPlane = flightCam.mainCamera.nearClipPlane;
+			origParent = flightCam.transform.parent;
 		}
 
 		public void recallState(FlightCamera flightCam)
@@ -43,6 +46,7 @@ namespace FirstPerson
 			flightCam.startDistance = origStartDistance;
 			flightCam.SetDistanceImmediate(origStartDistance);
 			flightCam.mainCamera.nearClipPlane = origNearClipPlane;
+			flightCam.transform.parent = origParent;
 		}
 
 	}
