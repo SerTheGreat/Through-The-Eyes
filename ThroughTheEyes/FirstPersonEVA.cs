@@ -111,7 +111,6 @@ namespace FirstPerson
         {
             if (kerbal != null && kerbal.isEVA)
             {
-
                 enableRenderers(FlightGlobals.ActiveVessel.transform, true);
             }
         }
@@ -119,6 +118,10 @@ namespace FirstPerson
 		void resetCamera() {
 
 			GameObject.Destroy(fpgui);
+
+			if (!isFirstPerson) {
+				return;
+			}
 
 			Vessel pVessel = FlightGlobals.ActiveVessel;
 			FlightCamera flightCam = FlightCamera.fetch;
@@ -150,7 +153,6 @@ namespace FirstPerson
                if (FlightGlobals.ActiveVessel.isEVA)
                {
                    CameraManager.Instance.SetCameraFlight();
-
                }
            });
        }
