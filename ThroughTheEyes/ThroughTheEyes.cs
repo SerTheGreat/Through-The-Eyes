@@ -1,36 +1,21 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Text;
 using UnityEngine;
+
 namespace FirstPerson
 {
     [KSPAddon(KSPAddon.Startup.Flight, false)]
     class ThroughTheEyes : MonoBehaviour
     {
 
-
-        bool keysDisabled, disableMapView, forceIVA;
-        KeyCode EVAKey,reviewDataKey;
+        bool disableMapView, forceIVA;
+        KeyCode reviewDataKey, recoverKey;
+		static KeyCode EVAKey = ConfigUtil.EVAKey(GameSettings.CAMERA_MODE.primary);
         CameraManager.CameraMode flight = CameraManager.CameraMode.Flight;
         CameraManager.CameraMode IVA = CameraManager.CameraMode.IVA;
         CameraManager.CameraMode map = CameraManager.CameraMode.Map;
 
-        List<KeyBinding> keyBindings = new List<KeyBinding>
-           {
-               GameSettings.CAMERA_MODE,
-               GameSettings.CAMERA_NEXT,
-               GameSettings.MAP_VIEW_TOGGLE,
-           };
-
-        List<KeyCode> keySaver = new List<KeyCode>()
-           {
-               GameSettings.CAMERA_MODE.primary,
-               GameSettings.CAMERA_MODE.secondary,
-               GameSettings.CAMERA_NEXT.primary,
-               GameSettings.CAMERA_NEXT.secondary,
-               GameSettings.MAP_VIEW_TOGGLE.primary,
-               GameSettings.MAP_VIEW_TOGGLE.secondary,
-           };
+		KeyDisabler keyDisabler;
 
         void OnGUI()
         {
@@ -39,68 +24,31 @@ namespace FirstPerson
                 Vessel pVessel = FlightGlobals.ActiveVessel;
 				KerbalEVA keva = FlightGlobals.ActiveVessel.evaController;
                 int fuelPercent = (int)(keva.Fuel / keva.FuelCapacity);
-
-
-
             }
         }
 
         public ThroughTheEyes()
         {
-         	reviewDataKey = ConfigUtil.checkKeys();
-			EVAKey = ConfigUtil.EVAKey(GameSettings.CAMERA_MODE.primary);
-         	forceIVA = ConfigUtil.ForceIVA();
-         	disableMapView = ConfigUtil.checkMapView();
+         	
         }
 
-        void disableKeys()
-        {
-			for (int i=0; i < keyBindings.Count; i++)
-            {
-				KeyBinding k = keyBindings[i];
-                if (disableMapView)
-                {
-                    k.primary = KeyCode.None;
-                    k.secondary = KeyCode.None;
-                }
-                else
-                {
-                    if (k != GameSettings.MAP_VIEW_TOGGLE)
-                    {
-                        k.primary = KeyCode.None;
-                        k.secondary = KeyCode.None;
-                    }
-
-                }
-            }
-            keysDisabled = true;
-
-        }
-
-
-
-        void revertKeys()
-        {
-			for (int i=0; i < keyBindings.Count; i++)
-			{
-				KeyBinding k = keyBindings[i];
-                k.primary = keySaver[i];
-                i += 1;
-                k.secondary = keySaver[i];
-                i += 1;
-            }
-            keysDisabled = false;
-        }
-
-
-
-
+		void disableKeys() {
+			keyDisabler.disableKey(KeyDisabler.CAMERA_MODE);
+			if (CameraManager.Instance.currentCameraMode == IVA && !FlightGlobals.ActiveVessel.isEVA && FlightGlobals.ActiveVessel.GetCrewCount() < 2) {
+				keyDisabler.disableKey(KeyDisabler.CAMERA_NEXT);
+			} else {
+				keyDisabler.restoreKey(KeyDisabler.CAMERA_NEXT);
+			}
+			if (disableMapView) {
+				keyDisabler.disableKey(KeyDisabler.MAP_VIEW);
+			}
+		}
 
         void CheckAndSetCamera(Vessel pVessel)
         {
-            CameraManager camManage = CameraManager.Instance;
+			CameraManager camManage = CameraManager.Instance;
 
-            if (pVessel.situation == Vessel.Situations.PRELAUNCH) { return; }
+			if (externalMaintenainceAvailable(pVessel)) { return; }
             if (!pVessel.isEVA)
 			{
                 if (pVessel.GetCrewCount() > 0)
@@ -115,9 +63,9 @@ namespace FirstPerson
                         }
                     }
                     else
-                    {
-                        if (camManage.currentCameraMode == flight)
-                        { camManage.SetCameraMode(IVA); }
+					{
+						if (camManage.currentCameraMode == flight || camManage.currentCameraMode == CameraManager.CameraMode.External)
+						{ camManage.SetCameraMode(IVA); }
                     }
 
                 }
@@ -128,16 +76,30 @@ namespace FirstPerson
                 }
             }
         }
-
+        
+        private void onVesselChange(Vessel v) {
+			if (v.isEVA) {
+				CameraManager.Instance.SetCameraFlight(); //Important. Without this switching to EVA from IVA would lead to heavy errors on attempts to return to IVA of originating vessel
+			}        	
+        }
 
         void Start()
         {
 
-            GameEvents.onLaunch.Add((v) =>
+			keyDisabler = KeyDisabler.initialize();
+			
+            /*GameEvents.onLaunch.Add((v) =>
             {
                 if (forceIVA) { CameraManager.Instance.SetCameraIVA(); disableKeys(); }
-            });
+            });*/
 
+			GameEvents.onVesselChange.Add(onVesselChange);
+
+			reviewDataKey = ConfigUtil.checkKeys();
+			forceIVA = ConfigUtil.ForceIVA();
+			disableMapView = ConfigUtil.checkMapView();
+			recoverKey = ConfigUtil.RecoverKey();
+			keyDisabler.restoreAllKeys();
         }
 
         void Update()
@@ -152,29 +114,36 @@ namespace FirstPerson
                     {
                         CheckAndSetCamera(pVessel);
                     }
-					if (pVessel.situation != Vessel.Situations.PRELAUNCH) {
-						if (Input.GetKeyDown(EVAKey)) {
-							KeyControls.GoEVA();
-							KeyControls.rescueAfterHatchCheck();
-						}
-					} else if (keysDisabled) {
-						revertKeys();
+                    if (!externalMaintenainceAvailable(pVessel)) {
+						disableKeys();
+					} else if (keyDisabler.keysDisabled) {
+						keyDisabler.restoreAllKeys();
+					}
+                    if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(EVAKey)) {
+						KeyControls.GoEVA();
+						//KeyControls.rescueAfterHatchCheck();
 					}
                     if (Input.GetKeyDown(reviewDataKey))
                     {
                         KeyControls.MyReviewData();
-                    }
-                    if ((Input.GetKeyDown(keySaver[2])) || Input.GetKeyDown(keySaver[3]))
-                    {
-                        KeyControls.CameraSwitch(flightCam, pVessel);
-                    }
+					}
+
+					if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(recoverKey)) {
+						KeyControls.recoverVessel(pVessel);
+					}
                 }
             }
         }
 
+        private bool externalMaintenainceAvailable(Vessel vessel) {
+        	return vessel.situation == Vessel.Situations.PRELAUNCH || vessel.LandedInKSC;
+        }
+
         void Destroy()
         {
-            if (keysDisabled) { revertKeys(); }
+			if (keyDisabler != null) {
+				keyDisabler.restoreAllKeys();
+			}
         }
 
     }

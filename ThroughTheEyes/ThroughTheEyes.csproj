@@ -1,4 +1,4 @@
-<?xml version="1.0" encoding="utf-8"?>
+﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
@@ -40,14 +40,16 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="FirstPersonCameraManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="CameraState.cs" />
     <Compile Include="ConfigUtil.cs" />
     <Compile Include="DebugUtils.cs" />
-    <Compile Include="FirstPersonEVA.cs" />
     <Compile Include="FPGUI.cs" />
     <Compile Include="KeyControls.cs" />
     <Compile Include="ThroughTheEyes.cs" />
+    <Compile Include="FirstPersonEVA.cs" />
+    <Compile Include="KeyDisabler.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

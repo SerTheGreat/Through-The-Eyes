@@ -60,6 +60,12 @@ namespace FirstPerson
 				cfg.Save(configPath);
                 Debug.Log("No EVAKey value found. Reverting to camera mode key");
             }
+			if (!cfg.HasValue("recoverKey"))
+			{
+				cfg.AddValue("recoverKey", "R");
+				cfg.Save(configPath);
+				Debug.Log("No recoverKey value found. Making one");
+			}
             if (!cfg.HasValue("reviewDataKey"))
             {
                 cfg.AddValue("reviewDataKey", "Backslash");
@@ -67,6 +73,26 @@ namespace FirstPerson
                 Debug.Log("No reviewDataKey value found. Adding one");
             }
         }
+
+		public static KeyCode RecoverKey()
+		{
+			checkConfig();
+
+			KeyCode key;
+			try
+			{
+				key = (KeyCode)Enum.Parse(typeof(KeyCode), cfg.GetValue("recoverKey"));
+				return key;
+			}
+			catch
+			{
+				cfg.SetValue("recoverKey", "R");
+				cfg.Save(configPath);
+				Debug.Log("Make sure to use the list of keys to set the key! Reverting to R");
+				return KeyCode.R;
+
+			}
+		}
 
         public static KeyCode EVAKey(KeyCode key)
         {
@@ -209,7 +235,7 @@ namespace FirstPerson
             {
                 cfg.SetValue("reviewDataKey", "Backslash");
 				cfg.Save(configPath);
-                Debug.Log("Make sure to use the list of keys to set the key! Reverting to backslash");
+                Debug.Log("Make sure to use the list of keys to set the key! Reverting to Backslash");
                 return KeyCode.Backslash;
             }
 
