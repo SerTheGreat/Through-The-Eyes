@@ -161,54 +161,14 @@ namespace FirstPerson
 
 		public void PreKerbalStateFixedUpdate(KerbalEVA parent)
 		{
-			//KSPLog.print ("PreKerbalStateFixedUpdate A");
+
 			if (fpCameraManager.isFirstPerson && FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.evaController == parent) {
 
-				//KSPLog.print ("PreKerbalStateFixedUpdate B");
-
-				System.Reflection.MemberInfo[] mi = typeof(KerbalEVA).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, null);
-				System.Reflection.FieldInfo tgtFwd = null;
-				System.Reflection.FieldInfo tgtUp = null;
-				System.Reflection.FieldInfo manualAxisControl = null;
-				System.Reflection.FieldInfo packRRot = null;
-				System.Reflection.FieldInfo packTgtRPos = null;
-				System.Reflection.FieldInfo cmdRot = null;
-				foreach (System.Reflection.MemberInfo m in mi) {
-					if (m.Name == "tgtFwd")
-						tgtFwd = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "tgtUp")
-						tgtUp = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "manualAxisControl")
-						manualAxisControl = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "packRRot")
-						packRRot = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "packTgtRPos")
-						packTgtRPos = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "cmdRot")
-						cmdRot = (System.Reflection.FieldInfo)m;
-				}
-
-				/*
-				if (GameSettings.EVA_ROTATE_ON_MOVE) {
-					packRRot.SetValue (FlightGlobals.ActiveVessel.evaController, Vector3.zero);
-					manualAxisControl.SetValue (FlightGlobals.ActiveVessel.evaController, false);
-					//KSPLog.print ("SAS on");
-				} else {
-					manualAxisControl.SetValue (FlightGlobals.ActiveVessel.evaController, true);
-					//KSPLog.print ("SAS off");
-				}
-				*/
-
-				//KSPLog.print ("PreKerbalStateFixedUpdate C");
+				ReflectedMembers.Initialize();
 
 				if ((FlightGlobals.ActiveVessel.situation != Vessel.Situations.SPLASHED
 					&& FlightGlobals.ActiveVessel.situation != Vessel.Situations.LANDED)
 					&& FlightGlobals.ActiveVessel.evaController.JetpackDeployed) {
-
-					//KSPLog.print ("PreKerbalStateFixedUpdate D");
-
-					//tgtUp.SetValue (FlightGlobals.ActiveVessel.evaController, FlightGlobals.ActiveVessel.evaController.transform.up);
-					//tgtFwd.SetValue (FlightGlobals.ActiveVessel.evaController, FlightGlobals.ActiveVessel.evaController.transform.forward);
 
 					//************Rotation************
 					Quaternion manualRotation = Quaternion.identity;
@@ -246,39 +206,52 @@ namespace FirstPerson
 						KSPLog.print ("ROLL LEFT");
 					}
 
+					//Testing
+					Vector3 kp = new Vector3 (3.0f, 3.0f, 3.0f);
+					Vector3 ki = new Vector3 (0.25f, 0.25f, 0.25f);
+					//Vector3 kd = new Vector3 (0.3f, 0.3f, 0.3f);
+					Vector3 kd = new Vector3 (0.001f, 0.001f, 0.001f);
+
+					ReflectedMembers.eva_manualAxisControl.SetValue (parent, true);
 					if (manualRotation == Quaternion.identity) {
 						//No rotation controls active. SAS active, maybe.
-						tgtUp.SetValue (FlightGlobals.ActiveVessel.evaController, state.PackSASTarget_Rot_Up);
-						tgtFwd.SetValue (FlightGlobals.ActiveVessel.evaController, state.PackSASTarget_Rot_Fwd);
 
 						//Set manual mode based on SAS mode.
 						if (GameSettings.EVA_ROTATE_ON_MOVE) {
-							packRRot.SetValue (FlightGlobals.ActiveVessel.evaController, Vector3.zero);
-							manualAxisControl.SetValue (parent, false);
-							KSPLog.print ("SAS on, no command");
+							//Run PID.
+							Vector3 angularvelocity = parent.part.Rigidbody.angularVelocity;
+							Vector3 currenterror = -ClampVectorComponents(angularvelocity, -0.5f, 0.5f);
+							state.rotationpid_integral = ClampVectorComponents (state.rotationpid_integral + currenterror * Time.fixedDeltaTime, -1f, 1f);
+							Vector3 derivative = (currenterror - state.rotationpid_previouserror) / Time.fixedDeltaTime;
+							Vector3 pidresult = PairwiseMultiplyVectors(kp, currenterror)
+								+ PairwiseMultiplyVectors(ki, state.rotationpid_integral)
+								+ PairwiseMultiplyVectors(kd, derivative);
+
+							KSPLog.print ("currenterror: " + currenterror.ToString ());
+							KSPLog.print ("rotationpid_integral: " + state.rotationpid_integral.ToString ());
+							KSPLog.print ("derivative: " + derivative.ToString ());
+
+							state.rotationpid_previouserror = currenterror;
+
+							//Assign command
+							ReflectedMembers.eva_cmdRot.SetValue (parent, pidresult);
+							KSPLog.print ("SAS on, no command, PID result: " + pidresult.ToString() + ", actual velocity: " + angularvelocity.ToString());
 						} else {
-							packRRot.SetValue (FlightGlobals.ActiveVessel.evaController, Vector3.zero);
-							manualAxisControl.SetValue (parent, true);
 							KSPLog.print ("SAS off, no command");
+							//Idle and SAS off. Do nothing.
+							ReflectedMembers.eva_cmdRot.SetValue (parent, Vector3.zero);
 						}
 					} else {
 						//Rotation controls active.
 
-						//Set new SAS target to here. TODO: remember last state and make setpoint the first non-command tick.
-						state.PackSASTarget_Rot_Up = parent.transform.up;
-						state.PackSASTarget_Rot_Fwd = parent.transform.forward;
+						//Reset PID
+						state.rotationpid_integral = Vector3.zero;
+						state.rotationpid_previouserror = Vector3.zero;
 
-						//Set manual rotation thrust.
-						manualAxisControl.SetValue (parent, true);
-						cmdRot.SetValue (parent, commandedManualRotation);
+						ReflectedMembers.eva_cmdRot.SetValue (parent, commandedManualRotation);
 
 						KSPLog.print ("Manual command");
 					}
-
-					//state.PackSASTarget_Rot_Up = manualRotation * state.PackSASTarget_Rot_Up;
-					//state.PackSASTarget_Rot_Fwd = manualRotation * state.PackSASTarget_Rot_Fwd;
-
-
 
 					//************Translation************
 					Vector3 manualTranslation = Vector3.zero;
@@ -318,68 +291,9 @@ namespace FirstPerson
 					manualTranslation.Normalize ();
 					manualTranslation = FlightGlobals.ActiveVessel.transform.rotation * manualTranslation;
 
-					KSPLog.print ("Resetting rpos. Old value: " + ((Vector3)packTgtRPos.GetValue (FlightGlobals.ActiveVessel.evaController)).ToString ()
+					KSPLog.print ("Resetting rpos. Old value: " + ((Vector3)ReflectedMembers.eva_packTgtRPos.GetValue (FlightGlobals.ActiveVessel.evaController)).ToString ()
 						+", new value: " + manualTranslation.ToString());
-					packTgtRPos.SetValue (FlightGlobals.ActiveVessel.evaController, manualTranslation);
-
-					//FlightInputHandler.
-					/*
-					Quaternion manualRotation = Quaternion.identity;
-					if (GameSettings.YAW_LEFT.GetKey (false)) {
-						manualRotation = Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
-						FlightGlobals.ActiveVessel.evaController.fFwd = -FlightGlobals.ActiveVessel.evaController.transform.forward;
-						KSPLog.print ("YAW LEFT");
-					}
-					else if (GameSettings.YAW_RIGHT.GetKey (false)) {
-						manualRotation = Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
-						FlightGlobals.ActiveVessel.evaController.fFwd = FlightGlobals.ActiveVessel.evaController.transform.forward;
-						KSPLog.print ("YAW RIGHT");
-					}
-
-					if (GameSettings.PITCH_UP.GetKey (false)) {
-						manualRotation = Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
-						FlightGlobals.ActiveVessel.evaController.fFwd = FlightGlobals.ActiveVessel.evaController.transform.right;
-						KSPLog.print ("PITCH UP");
-					}
-					else if (GameSettings.PITCH_DOWN.GetKey (false)) {
-						manualRotation = Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
-						FlightGlobals.ActiveVessel.evaController.fFwd = -FlightGlobals.ActiveVessel.evaController.transform.right;
-						KSPLog.print ("PITCH DOWN");
-					}
-
-					if (GameSettings.ROLL_RIGHT.GetKey (false)) {
-						manualRotation = Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
-						FlightGlobals.ActiveVessel.evaController.fFwd = FlightGlobals.ActiveVessel.evaController.transform.up;
-						KSPLog.print ("ROLL RIGHT");
-					}
-					else if (GameSettings.ROLL_LEFT.GetKey (false)) {
-						manualRotation = Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
-						FlightGlobals.ActiveVessel.evaController.fFwd = -FlightGlobals.ActiveVessel.evaController.transform.up;
-						KSPLog.print ("ROLL LEFT");
-					}
-					*/
-					/*
-					if (manualRotation != Quaternion.identity) {
-						//1.57079637050629 is pi/2
-						//if ((double)Mathf.Acos (Vector3.Dot (oldtgtfwd, this.transform.forward)) < 1.57079637050629 && (double)Mathf.Acos (Vector3.Dot (oldtgtup, this.transform.up)) < 1.57079637050629) {
-						if ((double)Mathf.Acos (Vector3.Dot (FlightGlobals.ActiveVessel.evaController.fFwd, this.transform.forward)) < 1.57079637050629 && (double)Mathf.Acos (Vector3.Dot (FlightGlobals.ActiveVessel.evaController.fUp, this.transform.up)) < 1.57079637050629) {
-							KSPLog.print ("Manual rotation!");
-							FlightGlobals.ActiveVessel.evaController.fUp = manualRotation * FlightGlobals.ActiveVessel.evaController.fUp;
-							FlightGlobals.ActiveVessel.evaController.fFwd = manualRotation * FlightGlobals.ActiveVessel.evaController.fFwd;
-							//fUp.SetValue (FlightGlobals.ActiveVessel.evaController, manualRotation * oldtgtup);
-							//fFwd.SetValue (FlightGlobals.ActiveVessel.evaController, manualRotation * oldtgtfwd);
-						} else {
-							FlightGlobals.ActiveVessel.evaController.fUp = FlightGlobals.ActiveVessel.evaController.transform.up;
-							FlightGlobals.ActiveVessel.evaController.fFwd = FlightGlobals.ActiveVessel.evaController.transform.forward;
-							//this.tgtUp = this.transform.up;
-							//this.tgtFwd = this.transform.forward;
-							KSPLog.print ("Manual rotation reset.");
-							//fUp.SetValue (FlightGlobals.ActiveVessel.evaController, FlightGlobals.ActiveVessel.evaController.transform.up);
-							//fFwd.SetValue (FlightGlobals.ActiveVessel.evaController, FlightGlobals.ActiveVessel.evaController.transform.forward);
-						}
-					}
-					*/
-
+					ReflectedMembers.eva_packTgtRPos.SetValue (FlightGlobals.ActiveVessel.evaController, manualTranslation);
 
 				}
 
@@ -506,6 +420,24 @@ namespace FirstPerson
 			else if ((double) orientation <= -0.75)
 				opacity *= Mathf.Clamp01(Mathf.InverseLerp(-0.95f, -0.75f, orientation));
 			vector.GetComponent<MeshRenderer>().materials[0].SetFloat("_Opacity", opacity);
+		}
+
+		Vector3 ClampVectorComponents(Vector3 v, float min, float max)
+		{
+			Vector3 ret = new Vector3 ();
+			ret.x = Mathf.Clamp (v.x, min, max);
+			ret.y = Mathf.Clamp (v.y, min, max);
+			ret.z = Mathf.Clamp (v.z, min, max);
+			return ret;
+		}
+
+		Vector3 PairwiseMultiplyVectors(Vector3 a, Vector3 b)
+		{
+			Vector3 ret = new Vector3 ();
+			ret.x = a.x * b.x;
+			ret.y = a.y * b.y;
+			ret.z = a.z * b.z;
+			return ret;
 		}
 
 	}

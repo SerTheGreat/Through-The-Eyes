@@ -230,6 +230,11 @@ namespace FirstPerson
 			GameSettings.EVA_Pack_right.primary = right_a;
 			GameSettings.EVA_Pack_right.secondary = right_b;
 			*/
+
+			if (previousVessel != null && previousVessel.evaController != null) {
+				ReflectedMembers.eva_manualAxisControl.SetValue (previousVessel.evaController, false);
+				ReflectedMembers.eva_cmdRot.SetValue (previousVessel.evaController, Vector3.zero);
+			}
 		}
 		
 		public bool isCameraProperlyPositioned(FlightCamera flightCam) {

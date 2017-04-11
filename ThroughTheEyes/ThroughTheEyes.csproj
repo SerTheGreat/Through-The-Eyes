@@ -54,6 +54,7 @@
     <Compile Include="KeyDisabler.cs" />
     <Compile Include="OverrideKFSMIdleState.cs" />
     <Compile Include="EVAIVAState.cs" />
+    <Compile Include="ReflectedMembers.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>

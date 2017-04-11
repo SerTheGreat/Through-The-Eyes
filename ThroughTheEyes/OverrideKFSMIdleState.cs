@@ -16,40 +16,10 @@ namespace FirstPerson
 			this.OnEnter = new KFSMStateChange (H_OnEnter);
 			this.OnFixedUpdate = new KFSMCallback (H_OnFixedUpdate);
 		}
-
-		static bool hasrefs = false;
-		//Kerbal FSM
-		internal static System.Reflection.FieldInfo mi_fsm_states = null;
-		internal static System.Reflection.FieldInfo mi_fsm_currentstate = null;
-		internal static System.Reflection.FieldInfo mi_fsm_laststate = null;
-		//Kerbal EVA
-		internal static System.Reflection.FieldInfo mi_eva_onjumpcomplete = null;
-
-		internal static void GetRefs()
-		{
-			if (hasrefs)
-				return;
-
-			System.Reflection.MemberInfo[] mi = typeof(KerbalFSM).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, null);
-			foreach (System.Reflection.MemberInfo m in mi) {
-				if (m.Name == "States")
-					mi_fsm_states = (System.Reflection.FieldInfo)m;
-				else if (m.Name == "currentState")
-					mi_fsm_currentstate = (System.Reflection.FieldInfo)m;
-				else if (m.Name == "lastState")
-					mi_fsm_laststate = (System.Reflection.FieldInfo)m;
-			}
-
-			mi = typeof(KerbalEVA).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, null);
-			foreach (System.Reflection.MemberInfo m in mi) {
-				if (m.Name == "On_jump_complete")
-					mi_eva_onjumpcomplete = (System.Reflection.FieldInfo)m;
-			}
-		}
-
+			
 		public void Hook(KerbalEVA eva)
 		{
-			GetRefs ();
+			ReflectedMembers.Initialize();
 
 			iparenteva = eva;
 			oldstate = eva.st_idle_fl;
@@ -61,9 +31,9 @@ namespace FirstPerson
 			KFSMState currentState;
 			KFSMState lastState;
 
-			States = (List<KFSMState>)mi_fsm_states.GetValue (eva.fsm);
-			currentState = (KFSMState)mi_fsm_currentstate.GetValue (eva.fsm);
-			lastState = (KFSMState)mi_fsm_laststate.GetValue (eva.fsm);
+			States = (List<KFSMState>)ReflectedMembers.fsm_states.GetValue (eva.fsm);
+			currentState = (KFSMState)ReflectedMembers.fsm_currentstate.GetValue (eva.fsm);
+			lastState = (KFSMState)ReflectedMembers.fsm_laststate.GetValue (eva.fsm);
 
 			for (int i = 0; i < States.Count; ++i) {
 				if (States [i] == oldstate) {
@@ -72,15 +42,15 @@ namespace FirstPerson
 				}
 			}
 			if (currentState == oldstate)
-				mi_fsm_currentstate.SetValue (eva.fsm, this);
+				ReflectedMembers.fsm_currentstate.SetValue (eva.fsm, this);
 			if (lastState == oldstate)
-				mi_fsm_laststate.SetValue (eva.fsm, this);
+				ReflectedMembers.fsm_laststate.SetValue (eva.fsm, this);
 
 			//******State reference fixups******
 			eva.On_bound_fall.GoToStateOnEvent = this;
 
 			//Wtf private??
-			((KFSMTimedEvent)mi_eva_onjumpcomplete.GetValue(eva)).GoToStateOnEvent = this;
+			((KFSMTimedEvent)ReflectedMembers.eva_onjumpcomplete.GetValue(eva)).GoToStateOnEvent = this;
 
 			//eva.fsm.AddEvent (eva.On_land_start, this);
 			this.AddEvent(eva.On_land_start);
