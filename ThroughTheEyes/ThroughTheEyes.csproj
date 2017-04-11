@@ -8,6 +8,8 @@
     <RootNamespace>ThroughTheEyes</RootNamespace>
     <AssemblyName>ThroughTheEyes</AssemblyName>
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
+    <ProductVersion>8.0.30703</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -29,14 +31,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\..\..\ksp-win64-1.2.2 - Copy\KSP_win64\KSP_x64_Data\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
-      <HintPath>..\..\Managed\UnityEngine.UI.dll</HintPath>
+      <HintPath>..\..\..\..\ksp-win64-1.2.2 - Copy\KSP_win64\KSP_x64_Data\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\..\..\ksp-win64-1.2.2 - Copy\KSP_win64\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -50,6 +52,8 @@
     <Compile Include="ThroughTheEyes.cs" />
     <Compile Include="FirstPersonEVA.cs" />
     <Compile Include="KeyDisabler.cs" />
+    <Compile Include="OverrideKFSMIdleState.cs" />
+    <Compile Include="EVAIVAState.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
