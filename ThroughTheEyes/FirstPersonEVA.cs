@@ -14,6 +14,7 @@ namespace FirstPerson
 		public FirstPersonCameraManager fpCameraManager;
 		public FPNavBall fpNavBall;
 		public FPStateFloating fpStateFloating;
+		public FPStateWalkRun fpStateWalkRun;
 
 		internal event EventHandler OnUpdate;
 		internal event EventHandler OnFixedUpdate;
@@ -69,6 +70,7 @@ namespace FirstPerson
 			fpCameraManager = FirstPersonCameraManager.initialize(ConfigUtil.ShowSightAngle());
 			fpNavBall = new FPNavBall (this);
 			fpStateFloating = new FPStateFloating (this);
+			fpStateWalkRun = new FPStateWalkRun (this);
  			
 			GameEvents.onVesselDestroy.Add(onVesselDestroy);
 			/*GameEvents.onCrewKilled.Add((v) => {
@@ -124,12 +126,13 @@ namespace FirstPerson
 					fpCameraManager.addYaw(Input.GetAxis("Mouse X") / Screen.width * mouseViewSensitivity);
 					fpCameraManager.addPitch(Input.GetAxis("Mouse Y") / Screen.height * mouseViewSensitivity);
 					fpCameraManager.reorient();
-					state.kerballookrotation = FlightCamera.fetch.transform.rotation;
+					//state.kerballookrotation = FlightCamera.fetch.transform.rotation;
 				} //button held down
 
 				if (FlightGlobals.ActiveVessel.Landed && (GameSettings.EVA_back.GetKey() || GameSettings.EVA_forward.GetKey())) {
 					fpCameraManager.viewToNeutral();
-					FlightCamera.fetch.transform.rotation = state.kerballookrotation;
+					fpCameraManager.reorient();
+					//FlightCamera.fetch.transform.rotation = state.kerballookrotation;
 				}
 
 				if (FlightGlobals.ActiveVessel.Landed && (GameSettings.EVA_back.GetKeyUp() || GameSettings.EVA_forward.GetKeyUp())) {

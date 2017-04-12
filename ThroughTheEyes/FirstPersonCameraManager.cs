@@ -46,21 +46,7 @@ namespace FirstPerson
 				    && !pVessel.packed //this prevents altering camera until EVA is unpacked or else various weird effects are possible
 				   )
 				{
-					flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
-					//flightCam.transform.parent = FlightGlobals.ActiveVessel.transform;
-
-					enableRenderers(pVessel.transform, false);
-
-					flightCam.mainCamera.nearClipPlane = 0.01f;
-
-					isFirstPerson = true;
-					if (showSightAngle) {
-						fpgui = flightCam.gameObject.AddOrGetComponent<FPGUI>();
-					}
-					flightCam.SetTargetNone();
-					flightCam.DeactivateUpdate();
-					viewToNeutral();
-					reorient();
+					SetFirstPersonCameraSettings (pVessel.evaController);
 
 					//Enter first person
 					FirstPersonEVA.instance.state.Reset (pVessel.evaController);
@@ -81,6 +67,28 @@ namespace FirstPerson
 					cameraState.saveState(flightCam);
 				}
 			}
+		}
+
+		public void SetFirstPersonCameraSettings(KerbalEVA eva)
+		{
+			FlightCamera flightCam = FlightCamera.fetch;
+
+			flightCam.transform.parent = eva.transform;
+			//flightCam.transform.parent = FlightGlobals.ActiveVessel.transform;
+
+			//enableRenderers(pVessel.transform, false);
+			enableRenderers(eva.transform, false);
+
+			flightCam.mainCamera.nearClipPlane = 0.01f;
+
+			isFirstPerson = true;
+			if (showSightAngle) {
+				fpgui = flightCam.gameObject.AddOrGetComponent<FPGUI>();
+			}
+			flightCam.SetTargetNone();
+			flightCam.DeactivateUpdate();
+			viewToNeutral();
+			reorient();
 		}
 
 		void override_idle_fl_OnEnter(KFSMState st)
@@ -203,9 +211,17 @@ namespace FirstPerson
 			Vector3 cameraUp = rotation * Vector3.up;
 			Vector3 cameraPosition = getFPCameraPosition(rotation);
 			FlightCamera flightCam = FlightCamera.fetch;
+
+			KSPLog.print ("prereorient cam fwd: " + flightCam.transform.forward.ToString () + ", maincam fwd: " + flightCam.mainCamera.transform.forward.ToString ());
+
+
 			flightCam.transform.localRotation = Quaternion.LookRotation(cameraForward, cameraUp);
 			flightCam.transform.localPosition = cameraPosition;
-			//flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
+			//flightCam.mainCamera.transform.localRotation = Quaternion.LookRotation(cameraForward, cameraUp);
+			//flightCam.mainCamera.transform.localPosition = cameraPosition;
+
+			flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
+			//flightCam.mainCamera.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
 
 			KSPLog.print (string.Format ("REORIENT Forward: {0}, Up: {1}, Position: {2}", cameraForward, cameraUp, cameraPosition));
 		}

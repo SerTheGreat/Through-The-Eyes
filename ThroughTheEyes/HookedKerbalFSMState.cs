@@ -22,8 +22,8 @@ namespace FirstPerson
 		public event delHookedKFSMCallback PreOnLateUpdate;
 		public event delHookedKFSMCallback PostOnLateUpdate;
 
-		public HookedKerbalFSMState (string statename, KFSMState poriginalstate)
-			:base(statename)
+		public HookedKerbalFSMState (KFSMState poriginalstate)
+			:base(poriginalstate.name)
 		{
 			originalstate = poriginalstate;
 

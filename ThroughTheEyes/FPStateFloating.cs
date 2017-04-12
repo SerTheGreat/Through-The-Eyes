@@ -22,7 +22,7 @@ namespace FirstPerson
 		{
 			//Hook it!
 			if (!(eva.st_idle_fl is HookedKerbalFSMState)) {
-				HookedKerbalFSMState newst = new HookedKerbalFSMState ("Idle (Floating)", eva.st_idle_fl);
+				HookedKerbalFSMState newst = new HookedKerbalFSMState (eva.st_idle_fl);
 				newst.Hook (eva);
 				newst.PreOnFixedUpdate += evtHook_PreOnFixedUpdate;
 				newst.PostOnFixedUpdate += evtHook_PostOnFixedUpdate;

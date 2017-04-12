@@ -40,6 +40,9 @@
     <Reference Include="UnityEngine">
       <HintPath>..\..\..\..\ksp-win64-1.2.2 - Copy\KSP_win64\KSP_x64_Data\Managed\UnityEngine.dll</HintPath>
     </Reference>
+    <Reference Include="Assembly-CSharp-firstpass">
+      <HintPath>..\..\..\..\ksp-win64-1.2.2 - Copy\KSP_win64\KSP_x64_Data\Managed\Assembly-CSharp-firstpass.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="FirstPersonCameraManager.cs" />
@@ -58,6 +61,7 @@
     <Compile Include="FPNavBall.cs" />
     <Compile Include="FPStateFloating.cs" />
     <Compile Include="Helpers.cs" />
+    <Compile Include="FPStateWalkRun.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
