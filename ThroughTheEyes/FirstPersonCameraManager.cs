@@ -9,6 +9,7 @@ namespace FirstPerson
 	public class FirstPersonCameraManager
 	{
 		public bool isFirstPerson = false;
+		public KerbalEVA currentfpeva = null;
 		
 		private bool showSightAngle;
 		private CameraState cameraState;
@@ -21,34 +22,16 @@ namespace FirstPerson
 		private Vector3 eyeOffset = Vector3.zero;//Vector3.forward * 0.1F; //Eyes don't exist at a point when you move your head
 		private Vector3 headLocation = Vector3.up * .35f; // Where the centre of the head is
 
-		/*
-		bool has_saved_keys = false;
-		KeyCode back_a;
-		KeyCode back_b;
-		KeyCode forward_a;
-		KeyCode forward_b;
-		KeyCode up_a;
-		KeyCode up_b;
-		KeyCode down_a;
-		KeyCode down_b;
-		KeyCode left_a;
-		KeyCode left_b;
-		KeyCode right_a;
-		KeyCode right_b;
-		*/
+		public delegate void delEvtEVA(KerbalEVA eva);
+		public event delEvtEVA OnEnterFirstPerson;
+		public event delEvtEVA OnExitFirstPerson;
 
 		private FirstPersonCameraManager(){	}
 		
 		public static FirstPersonCameraManager initialize(bool showSightAngle = true) {
 			FirstPersonCameraManager instance = new FirstPersonCameraManager();
 			instance.cameraState = new CameraState();
-			//instance.resetCamera();
-			//instance.EnableRenderingOnPrevious(null);
 			instance.showSightAngle = showSightAngle;
-
-
-			//typeof(KerbalEVA).GetMethod().MethodHandle.Value.
-
 
 			return instance;
 		}
@@ -63,35 +46,11 @@ namespace FirstPerson
 				    && !pVessel.packed //this prevents altering camera until EVA is unpacked or else various weird effects are possible
 				   )
 				{
-					//flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
-					flightCam.transform.parent = FlightGlobals.ActiveVessel.transform;
-					/*
-					KSPLog.print ("Looking for helmet...");
-					Component[] components = pVessel.transform.GetComponentsInChildren(typeof(Transform));
-					for (int i = 0; i < components.Length; i++)
-                    {
-						Component component = components[i];
-						if (component.name.Contains("helmetCollider")) {
-							KSPLog.print ("Found helmet!");
-							flightCam.transform.parent.parent = component.transform; }
-                    }
-					*/
-
+					flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
 					//flightCam.transform.parent = FlightGlobals.ActiveVessel.transform;
 
 					enableRenderers(pVessel.transform, false);
 
-					/*flightCam.maxPitch = .98f;
-                    flightCam.minPitch = -.98f;
-                    flightCam.pivotTranslateSharpness = 50;
-                    flightCam.minHeight = 0f;
-                    flightCam.minHeightAtMaxDist = 0f;
-                    flightCam.minHeightAtMinDist = 0f;
-                    flightCam.minDistance = 0.01f;
-                    flightCam.maxDistance = 0.01f;
-                    flightCam.startDistance = 0.01f;
-                    flightCam.SetDistanceImmediate(0.01f);*/
-					//evaInst.animation.cullingType = AnimationCullingType.AlwaysAnimate;
 					flightCam.mainCamera.nearClipPlane = 0.01f;
 
 					isFirstPerson = true;
@@ -103,47 +62,12 @@ namespace FirstPerson
 					viewToNeutral();
 					reorient();
 
-					/*
-					if (!has_saved_keys) {
-						back_a = GameSettings.EVA_Pack_back.primary;
-						back_b = GameSettings.EVA_Pack_back.secondary;
-						forward_a = GameSettings.EVA_Pack_forward.primary;
-						forward_b = GameSettings.EVA_Pack_forward.secondary;
-						up_a = GameSettings.EVA_Pack_up.primary;
-						up_b = GameSettings.EVA_Pack_up.secondary;
-						down_a = GameSettings.EVA_Pack_down.primary;
-						down_b = GameSettings.EVA_Pack_down.secondary;
-						left_a = GameSettings.EVA_Pack_left.primary;
-						left_b = GameSettings.EVA_Pack_left.secondary;
-						right_a = GameSettings.EVA_Pack_right.primary;
-						right_b = GameSettings.EVA_Pack_right.secondary;
-
-						has_saved_keys = true;
-					}
-
-					KSPLog.print ("Unsetting keys!!");
-					GameSettings.EVA_Pack_back.primary = KeyCode.None;
-					GameSettings.EVA_Pack_back.secondary = KeyCode.None;
-					GameSettings.EVA_Pack_forward.primary = KeyCode.None;
-					GameSettings.EVA_Pack_forward.secondary = KeyCode.None;
-					GameSettings.EVA_Pack_up.primary = KeyCode.None;
-					GameSettings.EVA_Pack_up.secondary = KeyCode.None;
-					GameSettings.EVA_Pack_down.primary = KeyCode.None;
-					GameSettings.EVA_Pack_down.secondary = KeyCode.None;
-					GameSettings.EVA_Pack_left.primary = KeyCode.None;
-					GameSettings.EVA_Pack_left.secondary = KeyCode.None;
-					GameSettings.EVA_Pack_right.primary = KeyCode.None;
-					GameSettings.EVA_Pack_right.secondary = KeyCode.None;
-					*/
-
 					//Enter first person
-
-					if (!(pVessel.evaController.st_idle_fl is OverrideKFSMIdleState)) {
-						OverrideKFSMIdleState newst = new OverrideKFSMIdleState ();
-						newst.Hook (pVessel.evaController);
-					}
-
 					FirstPersonEVA.instance.state.Reset (pVessel.evaController);
+
+					currentfpeva = pVessel.evaController;
+					if (OnEnterFirstPerson != null)
+						OnEnterFirstPerson (pVessel.evaController);
 				}
 			}
 			else
@@ -192,6 +116,7 @@ namespace FirstPerson
 		}
 
 		public void resetCamera(Vessel previousVessel) {
+			ReflectedMembers.Initialize ();
 
 			GameObject.Destroy(fpgui);
 
@@ -215,21 +140,10 @@ namespace FirstPerson
 			EnableRenderingOnPrevious(previousVessel);
 
 			//Exit first person
-			/*
-			KSPLog.print ("Resetting keys!!");
-			GameSettings.EVA_Pack_back.primary = back_a;
-			GameSettings.EVA_Pack_back.secondary = back_b;
-			GameSettings.EVA_Pack_forward.primary = forward_a;
-			GameSettings.EVA_Pack_forward.secondary = forward_b;
-			GameSettings.EVA_Pack_up.primary = up_a;
-			GameSettings.EVA_Pack_up.secondary = up_b;
-			GameSettings.EVA_Pack_down.primary = down_a;
-			GameSettings.EVA_Pack_down.secondary = down_b;
-			GameSettings.EVA_Pack_left.primary = left_a;
-			GameSettings.EVA_Pack_left.secondary = left_b;
-			GameSettings.EVA_Pack_right.primary = right_a;
-			GameSettings.EVA_Pack_right.secondary = right_b;
-			*/
+
+			if (OnExitFirstPerson != null)
+				OnExitFirstPerson (currentfpeva);
+			currentfpeva = null;
 
 			//Restore stuff that changed in the evacontroller
 			if (previousVessel != null && previousVessel.evaController != null) {
@@ -241,6 +155,7 @@ namespace FirstPerson
 				previousVessel.evaController.rotPower = 1f;
 				previousVessel.evaController.linPower = 0.3f;
 			}
+
 		}
 		
 		public bool isCameraProperlyPositioned(FlightCamera flightCam) {

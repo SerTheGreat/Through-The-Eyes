@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace FirstPerson
 {
@@ -22,6 +23,9 @@ namespace FirstPerson
 		internal static System.Reflection.FieldInfo eva_fuelFlowRate = null;
 		internal static System.Reflection.FieldInfo eva_packLinear = null;
 
+		//Kerbal EVA state members
+		internal static List<System.Reflection.FieldInfo> eva_type_kfsmstate = new List<System.Reflection.FieldInfo>();
+
 
 		public static void Initialize()
 		{
@@ -29,7 +33,8 @@ namespace FirstPerson
 				return;
 			hasrefs = true;
 
-			System.Reflection.MemberInfo[] mi = typeof(KerbalFSM).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, null);
+			//KerbalFSM Fields
+			System.Reflection.MemberInfo[] mi = typeof(KerbalFSM).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public, null, null);
 			foreach (System.Reflection.MemberInfo m in mi) {
 				if (m.Name == "States")
 					fsm_states = (System.Reflection.FieldInfo)m;
@@ -39,27 +44,37 @@ namespace FirstPerson
 					fsm_laststate = (System.Reflection.FieldInfo)m;
 			}
 
-			mi = typeof(KerbalEVA).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, null);
+			//KerbalEVA Fields
+			eva_type_kfsmstate.Clear ();
+			mi = typeof(KerbalEVA).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Public, null, null);
 			foreach (System.Reflection.MemberInfo m in mi) {
+				System.Reflection.FieldInfo tf = m as System.Reflection.FieldInfo;
+				if (tf == null)
+					continue;
+
 				if (m.Name == "On_jump_complete")
-					eva_onjumpcomplete = (System.Reflection.FieldInfo)m;
+					eva_onjumpcomplete = tf;
 				else if (m.Name == "tgtFwd")
-					eva_tgtFwd = (System.Reflection.FieldInfo)m;
+					eva_tgtFwd = tf;
 				else if (m.Name == "tgtUp")
-					eva_tgtUp = (System.Reflection.FieldInfo)m;
+					eva_tgtUp = tf;
 				else if (m.Name == "manualAxisControl")
-					eva_manualAxisControl = (System.Reflection.FieldInfo)m;
+					eva_manualAxisControl = tf;
 				else if (m.Name == "packRRot")
-					eva_packRRot = (System.Reflection.FieldInfo)m;
+					eva_packRRot = tf;
 				else if (m.Name == "packTgtRPos")
-					eva_packTgtRPos = (System.Reflection.FieldInfo)m;
+					eva_packTgtRPos = tf;
 				else if (m.Name == "cmdRot")
-					eva_cmdRot = (System.Reflection.FieldInfo)m;
+					eva_cmdRot = tf;
 				else if (m.Name == "fuelFlowRate")
-					eva_fuelFlowRate = (System.Reflection.FieldInfo)m;
+					eva_fuelFlowRate = tf;
 				else if (m.Name == "packLinear")
-					eva_packLinear = (System.Reflection.FieldInfo)m;
+					eva_packLinear = tf;
+
+				if (tf.FieldType == typeof(KFSMState))
+					eva_type_kfsmstate.Add (tf);
 			}
+
 
 
 		}
