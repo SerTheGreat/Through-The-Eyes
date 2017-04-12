@@ -98,6 +98,8 @@ namespace FirstPerson
 			if (FirstPersonEVA.instance != null)
 				FirstPersonEVA.instance.PreKerbalStateFixedUpdate (ParentEVA);
 			oldstate.OnFixedUpdate ();
+			if (FirstPersonEVA.instance != null)
+				FirstPersonEVA.instance.PostKerbalStateFixedUpdate (ParentEVA);
 			//KSPLog.print ("H_OnFixedUpdate stop");
 		}
 

@@ -231,9 +231,15 @@ namespace FirstPerson
 			GameSettings.EVA_Pack_right.secondary = right_b;
 			*/
 
+			//Restore stuff that changed in the evacontroller
 			if (previousVessel != null && previousVessel.evaController != null) {
+				//Axis control settings
 				ReflectedMembers.eva_manualAxisControl.SetValue (previousVessel.evaController, false);
 				ReflectedMembers.eva_cmdRot.SetValue (previousVessel.evaController, Vector3.zero);
+
+				//Pack power (from fine controls)
+				previousVessel.evaController.rotPower = 1f;
+				previousVessel.evaController.linPower = 0.3f;
 			}
 		}
 		

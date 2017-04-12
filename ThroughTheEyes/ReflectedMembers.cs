@@ -19,6 +19,8 @@ namespace FirstPerson
 		internal static System.Reflection.FieldInfo eva_packRRot = null;
 		internal static System.Reflection.FieldInfo eva_packTgtRPos = null;
 		internal static System.Reflection.FieldInfo eva_cmdRot = null;
+		internal static System.Reflection.FieldInfo eva_fuelFlowRate = null;
+		internal static System.Reflection.FieldInfo eva_packLinear = null;
 
 
 		public static void Initialize()
@@ -53,6 +55,10 @@ namespace FirstPerson
 					eva_packTgtRPos = (System.Reflection.FieldInfo)m;
 				else if (m.Name == "cmdRot")
 					eva_cmdRot = (System.Reflection.FieldInfo)m;
+				else if (m.Name == "fuelFlowRate")
+					eva_fuelFlowRate = (System.Reflection.FieldInfo)m;
+				else if (m.Name == "packLinear")
+					eva_packLinear = (System.Reflection.FieldInfo)m;
 			}
 
 

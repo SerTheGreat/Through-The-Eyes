@@ -14,6 +14,10 @@ namespace FirstPerson
 		public Vector3 rotationpid_previouserror = Vector3.zero;
 		//public bool rotationsas_state = false;
 
+		//Persist this one globally for now
+		static float seva_throttle = 1f;
+		public float eva_throttle { get { return seva_throttle; } set { seva_throttle = value; } }
+
 		public void Reset(KerbalEVA eva)
 		{
 			kerballookrotation = new Quaternion ();
@@ -25,6 +29,8 @@ namespace FirstPerson
 
 			//PackSASTarget_Rot_Up = eva.transform.up;
 			//PackSASTarget_Rot_Fwd = eva.transform.forward;
+
+			//eva_throttle = 1f;
 		}
 	}
 }

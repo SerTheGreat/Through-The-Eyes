@@ -128,8 +128,16 @@ namespace FirstPerson
 					fpCameraManager.reorient();
 				}
 
-
-
+				//EVA pack throttle control
+				if (GameSettings.THROTTLE_UP.GetKey ())
+					state.eva_throttle += Time.fixedDeltaTime;
+				else if (GameSettings.THROTTLE_DOWN.GetKey ())
+					state.eva_throttle -= Time.fixedDeltaTime;
+				else if (GameSettings.THROTTLE_CUTOFF.GetKey ())
+					state.eva_throttle = 0f;
+				else if (GameSettings.THROTTLE_FULL.GetKey ())
+					state.eva_throttle = 1f;
+				state.eva_throttle = Mathf.Clamp (state.eva_throttle, 0.05f, 1f);
 
 
 
@@ -295,10 +303,36 @@ namespace FirstPerson
 						+", new value: " + manualTranslation.ToString());
 					ReflectedMembers.eva_packTgtRPos.SetValue (FlightGlobals.ActiveVessel.evaController, manualTranslation);
 
+					//************Set power**************
+					parent.rotPower = 1f * state.eva_throttle;
+					parent.linPower = 0.3f * state.eva_throttle;
+
 				}
 
 
 
+			}
+		}
+
+		public void PostKerbalStateFixedUpdate(KerbalEVA parent)
+		{
+			if (fpCameraManager.isFirstPerson && FlightGlobals.ActiveVessel != null && FlightGlobals.ActiveVessel.evaController == parent) {
+				ReflectedMembers.Initialize();
+
+				//Recalculate fuel flow: proportional to power factor
+				//Default power factors: rot 1, lin 0.3
+				if (parent.JetpackDeployed) {
+					float newflowrate = 0f;
+
+					Vector3 cmdrot = (Vector3)ReflectedMembers.eva_cmdRot.GetValue (parent);
+					Vector3 packlinear = (Vector3)ReflectedMembers.eva_packLinear.GetValue (parent);
+
+					newflowrate += cmdrot.magnitude * Time.fixedDeltaTime * parent.rotPower / 1f;
+					newflowrate += packlinear.magnitude * Time.fixedDeltaTime * parent.linPower / 0.3f;
+
+					KSPLog.print ("Flow rates: " + ((float)ReflectedMembers.eva_fuelFlowRate.GetValue(parent)).ToString() + " -> " + newflowrate.ToString());
+					ReflectedMembers.eva_fuelFlowRate.SetValue (parent, newflowrate);
+				}
 			}
 		}
 
@@ -311,6 +345,9 @@ namespace FirstPerson
 
 				FixupNavBall ();
 
+				//Do we have to worry about call order here??
+				KSP.UI.Screens.Flight.ThrottleGauge throttlegauge = (KSP.UI.Screens.Flight.ThrottleGauge)FindObjectOfType (typeof(KSP.UI.Screens.Flight.ThrottleGauge));
+				throttlegauge.gauge.SetValue (state.eva_throttle);
 			}
 		}
 
