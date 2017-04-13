@@ -8,6 +8,7 @@ namespace FirstPerson
 		KFSMState originalstate;
 		bool ishooked = false;
 		KerbalEVA eva;
+		public static bool makecall = true;
 
 		public delegate bool delHookCondition(KerbalEVA eva);
 		public event delHookCondition HookCondition;
@@ -133,9 +134,11 @@ namespace FirstPerson
 
 		void H_OnFixedUpdate()
 		{
+			makecall = true;
 			if (PreOnFixedUpdate != null && HookCondition(eva))
 				PreOnFixedUpdate (eva);
-			originalstate.OnFixedUpdate ();
+			if (makecall)
+				originalstate.OnFixedUpdate ();
 			if (PostOnFixedUpdate != null && HookCondition(eva))
 				PostOnFixedUpdate (eva);
 		}

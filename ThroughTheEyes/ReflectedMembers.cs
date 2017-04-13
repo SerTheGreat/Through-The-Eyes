@@ -30,6 +30,11 @@ namespace FirstPerson
 		internal static System.Reflection.FieldInfo eva_prev_error = null;
 
 		internal static System.Reflection.MethodInfo eva_m_HandleMovementInput = null;
+		internal static System.Reflection.MethodInfo eva_m_correctGroundedRotation = null;
+		internal static System.Reflection.MethodInfo eva_m_UpdateMovement = null;
+		internal static System.Reflection.MethodInfo eva_m_UpdateHeading = null;
+		internal static System.Reflection.MethodInfo eva_m_updateRagdollVelocities = null;
+		internal static System.Reflection.MethodInfo eva_m_UpdatePackLinear = null;
 
 		//Kerbal EVA state members
 		internal static List<System.Reflection.FieldInfo> eva_type_kfsmstate = new List<System.Reflection.FieldInfo>();
@@ -104,6 +109,16 @@ namespace FirstPerson
 
 					if (m.Name == "HandleMovementInput")
 						eva_m_HandleMovementInput = tf;
+					else if (m.Name == "correctGroundedRotation")
+						eva_m_correctGroundedRotation = tf;
+					else if (m.Name == "UpdateMovement")
+						eva_m_UpdateMovement = tf;
+					else if (m.Name == "UpdateHeading")
+						eva_m_UpdateHeading = tf;
+					else if (m.Name == "updateRagdollVelocities")
+						eva_m_updateRagdollVelocities = tf;
+					else if (m.Name == "UpdatePackLinear")
+						eva_m_UpdatePackLinear = tf;
 				}
 
 			} finally {

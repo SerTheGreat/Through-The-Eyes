@@ -212,7 +212,7 @@ namespace FirstPerson
 			Vector3 cameraPosition = getFPCameraPosition(rotation);
 			FlightCamera flightCam = FlightCamera.fetch;
 
-			KSPLog.print ("prereorient cam fwd: " + flightCam.transform.forward.ToString () + ", maincam fwd: " + flightCam.mainCamera.transform.forward.ToString ());
+			//KSPLog.print ("prereorient cam fwd: " + flightCam.transform.forward.ToString () + ", maincam fwd: " + flightCam.mainCamera.transform.forward.ToString ());
 
 
 			flightCam.transform.localRotation = Quaternion.LookRotation(cameraForward, cameraUp);
@@ -223,7 +223,7 @@ namespace FirstPerson
 			flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
 			//flightCam.mainCamera.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
 
-			KSPLog.print (string.Format ("REORIENT Forward: {0}, Up: {1}, Position: {2}", cameraForward, cameraUp, cameraPosition));
+			//KSPLog.print (string.Format ("REORIENT Forward: {0}, Up: {1}, Position: {2}", cameraForward, cameraUp, cameraPosition));
 		}
 		
 	}

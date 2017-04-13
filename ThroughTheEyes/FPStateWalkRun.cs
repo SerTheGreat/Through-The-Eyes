@@ -9,6 +9,7 @@ namespace FirstPerson
 		FirstPersonEVA imgr;
 		Vector3 walk_start_fwd;
 		Vector3 target_fwd;
+		//bool first_frame = false;
 
 		public FPStateWalkRun (FirstPersonEVA pmgr)
 		{
@@ -29,8 +30,11 @@ namespace FirstPerson
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_walk_acd, IsThisEVAIVA);
 				st.Hook (eva);
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
-				st.PreOnFixedUpdate += ResetControlOrientation;
-				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+				//st.PreOnFixedUpdate += ResetControlOrientation;
+				//st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+				st.PreOnFixedUpdate += ArcadeWalkDebug;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 			if (!(eva.st_walk_fps is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_walk_fps, IsThisEVAIVA);
@@ -38,6 +42,8 @@ namespace FirstPerson
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 			if (!(eva.st_run_acd is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_run_acd, IsThisEVAIVA);
@@ -45,6 +51,8 @@ namespace FirstPerson
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 			if (!(eva.st_run_fps is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_run_fps, IsThisEVAIVA);
@@ -52,6 +60,8 @@ namespace FirstPerson
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 			if (!(eva.st_bound_gr_acd is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_gr_acd, IsThisEVAIVA);
@@ -59,6 +69,8 @@ namespace FirstPerson
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 			if (!(eva.st_bound_gr_fps is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_gr_fps, IsThisEVAIVA);
@@ -66,6 +78,8 @@ namespace FirstPerson
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 			if (!(eva.st_bound_fl is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_fl, IsThisEVAIVA);
@@ -73,6 +87,8 @@ namespace FirstPerson
 				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+
+				//st.PostOnFixedUpdate += DEBUG_DeltaHdg;
 			}
 
 			//*********************
@@ -81,7 +97,8 @@ namespace FirstPerson
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_heading_acquire, IsThisEVAIVA);
 				st.Hook (eva);
 				st.PreOnEnter += ForceArcadeMode;
-				st.PreOnFixedUpdate += ResetControlOrientation;
+				//st.PreOnFixedUpdate += ResetControlOrientation;
+				st.PreOnFixedUpdate += TurnToHeadingDebug;
 			}
 
 			//*******************
@@ -109,14 +126,99 @@ namespace FirstPerson
 			return imgr.fpCameraManager.isFirstPerson && FlightGlobals.ActiveVessel != null && imgr.fpCameraManager.currentfpeva == eva;
 		}
 
+		void DEBUG_DeltaHdg(KerbalEVA eva, string nn)
+		{
+			float dotproduct = Vector3.Dot (eva.transform.forward, (Vector3)ReflectedMembers.eva_tgtFwd.GetValue (eva));
+			float dheading = Mathf.Acos (Vector3.Dot (eva.transform.forward, (Vector3)ReflectedMembers.eva_tgtFwd.GetValue (eva))) * 57.29578f;
+			float num = Mathf.Sign ((Quaternion.Inverse (eva.transform.rotation) * (Vector3)ReflectedMembers.eva_tgtFwd.GetValue (eva)).x);
+			KSPLog.print (nn + "LastDH: " + ReflectedMembers.eva_lastDeltaHdg.GetValue (eva).ToString ()
+				+ ", DH: " + ReflectedMembers.eva_deltaHdg.GetValue (eva).ToString ()
+				+ ", TgtF: " + ReflectedMembers.eva_tgtFwd.GetValue(eva).ToString()
+				+ ", TrnsF: " + eva.transform.forward.ToString()
+				+ ", dot: " + dotproduct.ToString()
+				+ ", dh: " + dheading.ToString()
+				+ ", num: " + num.ToString()
+				+ ", rpos: " + ReflectedMembers.eva_tgtRpos.GetValue(eva).ToString()
+				+ ", myTgtF: " + target_fwd.ToString()
+			);
+		}
+
 		void ResetKerbalForwardVector(KerbalEVA eva, KFSMState s)
 		{
-			walk_start_fwd = eva.transform.forward;
+			KSPLog.print ("ResetKerbalForwardVector");
+			//walk_start_fwd = Quaternion.AngleAxis(0.000001f, eva.transform.up) * eva.transform.forward;
+			walk_start_fwd = eva.vessel.transform.forward;
 			target_fwd = walk_start_fwd;
 			//ReflectedMembers.eva_deltaHdg.SetValue (eva, 0f);
 			//ReflectedMembers.eva_lastDeltaHdg.SetValue (eva, 0f);
 			ReflectedMembers.eva_integral.SetValue (eva, Vector3.zero);
 			ReflectedMembers.eva_prev_error.SetValue (eva, Vector3.zero);
+			//first_frame = true;
+		}
+
+		void TurnToHeadingDebug(KerbalEVA eva)
+		{
+			ReflectedMembers.Initialize ();
+
+			//DEBUG_DeltaHdg (eva, "HA ");
+			ResetControlOrientation (eva);
+			//DEBUG_DeltaHdg (eva, "HB ");
+			ReflectedMembers.eva_m_correctGroundedRotation.Invoke (eva, null);
+			//DEBUG_DeltaHdg (eva, "HD ");
+			//ReflectedMembers.eva_m_UpdateHeading.Invoke (eva, null);
+			ReplacementUpdateHeading(eva);
+			//DEBUG_DeltaHdg (eva, "HE ");
+			ReflectedMembers.eva_m_updateRagdollVelocities.Invoke (eva, null);
+			//DEBUG_DeltaHdg (eva, "HF ");
+
+			HookedKerbalFSMState.makecall = false;
+		}
+
+		void ArcadeWalkDebug(KerbalEVA eva)
+		{
+			ReflectedMembers.Initialize ();
+
+			//DEBUG_DeltaHdg (eva, "A ");
+			ResetControlOrientation (eva);
+			ApplyKerbalForwardTarget (eva);
+			//DEBUG_DeltaHdg (eva, "B ");
+			ReflectedMembers.eva_m_correctGroundedRotation.Invoke (eva, null);
+			//DEBUG_DeltaHdg (eva, "C ");
+			ReflectedMembers.eva_m_UpdateMovement.Invoke (eva, null);
+			//DEBUG_DeltaHdg (eva, "D ");
+			//ReflectedMembers.eva_m_UpdateHeading.Invoke (eva, null);
+			ReplacementUpdateHeading(eva);
+			//DEBUG_DeltaHdg (eva, "E ");
+			ReflectedMembers.eva_m_updateRagdollVelocities.Invoke (eva, null);
+			//DEBUG_DeltaHdg (eva, "F ");
+
+			HookedKerbalFSMState.makecall = false;
+		}
+
+		KerbalEVA cachedrbeva = null;
+		Rigidbody cachedrb = null;
+		void ReplacementUpdateHeading(KerbalEVA eva)
+		{
+			if (eva.vessel.packed)
+				return;
+			float newDH = (float)ReflectedMembers.eva_deltaHdg.GetValue (eva);
+			if ((Vector3)ReflectedMembers.eva_tgtRpos.GetValue (eva) != Vector3.zero) {
+				newDH = Vector3.Dot (eva.transform.forward, (Vector3)ReflectedMembers.eva_tgtFwd.GetValue (eva));
+				if (newDH >= 1f)
+					newDH = 1f;
+				newDH = Mathf.Acos (newDH) * 57.29578f; //180/pi
+			}
+			float sign = Mathf.Sign ((Quaternion.Inverse (eva.transform.rotation) * (Vector3)ReflectedMembers.eva_tgtFwd.GetValue (eva)).x);
+			newDH *= sign;
+			if (eva != cachedrbeva) {
+				cachedrb = eva.GetComponent<Rigidbody> ();
+				cachedrbeva = eva;
+			}
+			if (Mathf.Abs (newDH) < (eva.turnRate * 2.0f))
+				cachedrb.angularVelocity = newDH * 0.5f * eva.fUp;
+			else
+				cachedrb.angularVelocity = eva.turnRate * sign * eva.fUp;
+			ReflectedMembers.eva_deltaHdg.SetValue (eva, newDH);
 		}
 
 		void ApplyKerbalForwardTarget(KerbalEVA eva)
@@ -160,6 +262,24 @@ namespace FirstPerson
 			//If the jetpack is on, use jetpack controls while grounded.
 			if (eva.JetpackDeployed)
 				FirstPersonEVA.instance.fpStateFloating.evtHook_PreOnFixedUpdate (eva);
+			else {
+				ReflectedMembers.Initialize ();
+
+				//DEBUG_DeltaHdg (eva, "IA ");
+				ReflectedMembers.eva_m_correctGroundedRotation.Invoke (eva, null);
+				//DEBUG_DeltaHdg (eva, "IB ");
+				ReflectedMembers.eva_m_UpdateMovement.Invoke (eva, null);
+				//DEBUG_DeltaHdg (eva, "IC ");
+				//ReflectedMembers.eva_m_UpdateHeading.Invoke (eva, null);
+				ReplacementUpdateHeading(eva);
+				//DEBUG_DeltaHdg (eva, "ID ");
+				ReflectedMembers.eva_m_UpdatePackLinear.Invoke (eva, null);
+				//DEBUG_DeltaHdg (eva, "IE ");
+				ReflectedMembers.eva_m_updateRagdollVelocities.Invoke (eva, null);
+				//DEBUG_DeltaHdg (eva, "IF ");
+
+				HookedKerbalFSMState.makecall = false;
+			}
 		}
 
 		void GroundedJetpackCheck_PostFixedUpdate(KerbalEVA eva)
