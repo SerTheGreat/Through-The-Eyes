@@ -13,6 +13,19 @@ namespace FirstPerson
 		{
 			imgr = pmgr;
 			imgr.OnLateUpdate += new EventHandler(evt_OnLateUpdate);
+			imgr.fpCameraManager.OnEnterFirstPerson+= Imgr_fpCameraManager_OnEnterFirstPerson;
+		}
+
+		void Imgr_fpCameraManager_OnEnterFirstPerson (KerbalEVA eva)
+		{
+			if (navball_ == null) {
+				navball_ = (KSP.UI.Screens.Flight.NavBall)MonoBehaviour.FindObjectOfType (typeof(KSP.UI.Screens.Flight.NavBall));
+			}
+				
+			//When deboarding a seat, the reference transform is set to the kerbal's part.
+			//If you have not deboarded a seat, it is empty.
+			//This is to make it always consistent.
+			eva.vessel.SetReferenceTransform(eva.part);
 		}
 
 		void evt_OnLateUpdate(object sender, EventArgs none)
@@ -24,8 +37,21 @@ namespace FirstPerson
 				navball_ = (KSP.UI.Screens.Flight.NavBall)MonoBehaviour.FindObjectOfType (typeof(KSP.UI.Screens.Flight.NavBall));
 			}
 
+			Vessel activeVessel = FlightGlobals.ActiveVessel;
+			if (activeVessel == null)
+				return;
+
 			CelestialBody currentMainBody = FlightGlobals.currentMainBody;
-			Quaternion offsetGymbal = Quaternion.Euler(new Vector3(0.0f, 0.0f, 0.0f));
+
+			//NOTE: Kerbal parts seem to be facing towards the sky.
+			Quaternion offsetGymbal;
+			Part referencepart = activeVessel.GetReferenceTransformPart ();
+			if ((referencepart == null)
+				|| (referencepart == imgr.fpCameraManager.currentfpeva.part))
+				offsetGymbal = Quaternion.AngleAxis(90f, Vector3.right);
+			else
+				offsetGymbal = Quaternion.Euler(new Vector3(0.0f, 0.0f, 0.0f));
+
 			Quaternion attitudeGymbal = offsetGymbal * Quaternion.Inverse(navball_.target.rotation);
 			Quaternion relativeGymbal = attitudeGymbal * Quaternion.LookRotation(Vector3.ProjectOnPlane((Vector3) (currentMainBody.position + (Vector3d) currentMainBody.transform.up * currentMainBody.Radius - navball_.target.position), (Vector3) (navball_.target.position - currentMainBody.position).normalized).normalized, (Vector3) (navball_.target.position - currentMainBody.position).normalized);
 			navball_.navBall.rotation = relativeGymbal;
@@ -47,8 +73,6 @@ namespace FirstPerson
 				navball_.normalVector.gameObject.SetActive(false);
 			if (navball_.antiNormalVector.gameObject.activeSelf)
 				navball_.antiNormalVector.gameObject.SetActive (false);
-
-			Vessel activeVessel = FlightGlobals.ActiveVessel;
 
 			Vector3 displayVelocity = Vector3.zero;
 			switch (FlightGlobals.speedDisplayMode)
