@@ -156,6 +156,34 @@ namespace FirstPerson
 				st.Override_OnFixedUpdate = true;
 			}
 
+			//**************
+			//***Swimming***
+			if (!(eva.st_swim_fwd is HookedKerbalFSMState)) {
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_swim_fwd, IsThisEVAIVA);
+				st.Hook (eva);
+				st.PreOnEnter += ResetKerbalForwardVector;
+				st.PreOnFixedUpdate += ForceArcadeMode;
+				st.PreOnFixedUpdate += ResetControlOrientation;
+				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
+				st.PreOnFixedUpdate += Replacement_CorrectGroundedRotation;
+				st.PreOnFixedUpdate += Replacement_UpdateMovement;
+				st.PreOnFixedUpdate += Replacement_UpdateHeading;
+				st.PreOnFixedUpdate += Replacement_UpdateRagdollVelocities;
+				st.Override_OnFixedUpdate = true;
+			}
+
+			if (!(eva.st_swim_idle is HookedKerbalFSMState)) {
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_swim_idle, IsThisEVAIVA);
+				st.Hook (eva);
+				st.PreOnEnter += ResetJetpackManualControls;
+				st.PreOnFixedUpdate += ForceArcadeMode;
+				st.PreOnFixedUpdate += Replacement_CorrectGroundedRotation;
+				st.PreOnFixedUpdate += Replacement_UpdateMovement;
+				st.PreOnFixedUpdate += Replacement_UpdateHeading;
+				st.PreOnFixedUpdate += Replacement_UpdateRagdollVelocities;
+				st.Override_OnFixedUpdate = true;
+			}
+
 			walk_start_fwd = eva.transform.forward;
 			target_fwd = walk_start_fwd;
 		}

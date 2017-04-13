@@ -108,7 +108,8 @@ namespace FirstPerson
 				    renderer.name.Contains("eyeball") ||
 				    renderer.name.Contains("upTeeth") ||
 				    renderer.name.Contains("downTeeth") ||
-				    renderer.name.Contains("pupil")
+				    renderer.name.Contains("pupil") ||
+					renderer.name.Contains("ponytail") //Females
 				   ) {
 					renderer.enabled = enable;
 				}
