@@ -32,8 +32,11 @@ namespace FirstPerson
 		public FirstPersonEVA() { } 
 		
 		private void onVesselDestroy(Vessel v) {
-			if (v.isActiveVessel && v.isEVA) {
-				fpCameraManager.resetCamera(v);
+			if (FlightGlobals.fetch == null)
+				return;
+			
+			if (v != null && v == FlightGlobals.ActiveVessel && v.isEVA) {
+				fpCameraManager.resetCamera (v);
 			}
 		}
 		
