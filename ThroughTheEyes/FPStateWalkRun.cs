@@ -226,8 +226,10 @@ namespace FirstPerson
 		}
 		void ForceArcadeMode(KerbalEVA eva, KFSMState s)
 		{
-			//Force arcade mode walking
-			eva.CharacterFrameModeToggle = false;
+			if (GameSettings.EVA_back.GetKey(false))
+				eva.CharacterFrameModeToggle = true;	//Force fps mode walking
+			else
+				eva.CharacterFrameModeToggle = false;	//Force arcade mode walking
 		}
 
 		void ResetControlOrientation(KerbalEVA eva)
