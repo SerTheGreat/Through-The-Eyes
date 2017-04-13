@@ -141,7 +141,7 @@ namespace FirstPerson
 					if (val == null) {
 						KSPLog.print ("WARNING: REFLECTEDMEMBERS cannot find member: '" + tf.Name + "'");
 					} else {
-						KSPLog.print ("RM found " + tf.Name);
+						//KSPLog.print ("RM found " + tf.Name);
 					}
 				}
 			}

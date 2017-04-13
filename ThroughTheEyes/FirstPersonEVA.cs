@@ -164,18 +164,18 @@ namespace FirstPerson
 				}
 
 				KFSMState cur = (          (KFSMState)mi_currentstate.GetValue (FlightGlobals.ActiveVessel.evaController.fsm)        );
-				string disp = "State: " + cur.name + ", " + cur.GetType ().ToString ();
-				if (DEBUGlaststatedisplay != disp) {
-					DEBUGlaststatedisplay = disp;
-					KSPLog.print (disp);
-				}
+				//string disp = "State: " + cur.name + ", " + cur.GetType ().ToString ();
+				//if (DEBUGlaststatedisplay != disp) {
+				//	DEBUGlaststatedisplay = disp;
+				//	KSPLog.print (disp);
+				//}
 				/// ///////////////////////////////////////////////////////
 			}
 
 			if (OnFixedUpdate != null)
 				OnFixedUpdate (this, null);
 		}
-		string DEBUGlaststatedisplay = null;
+		//string DEBUGlaststatedisplay = null;
 
 		void LateUpdate()
 		{

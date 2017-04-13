@@ -83,31 +83,31 @@ namespace FirstPerson
 				if (GameSettings.YAW_LEFT.GetKey (false)) {
 					manualRotation = manualRotation * Quaternion.AngleAxis ((float)(-(double)FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
 					commandedManualRotation -= eva.transform.up;
-					KSPLog.print ("YAW LEFT");
+					//KSPLog.print ("YAW LEFT");
 				} else if (GameSettings.YAW_RIGHT.GetKey (false)) {
 					manualRotation = manualRotation * Quaternion.AngleAxis ((float)((double)FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
 					commandedManualRotation += eva.transform.up;
-					KSPLog.print ("YAW RIGHT");
+					//KSPLog.print ("YAW RIGHT");
 				}
 
 				if (GameSettings.PITCH_UP.GetKey (false)) {
 					manualRotation = manualRotation * Quaternion.AngleAxis ((float)(-(double)FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
 					commandedManualRotation -= eva.transform.right;
-					KSPLog.print ("PITCH UP");
+					//KSPLog.print ("PITCH UP");
 				} else if (GameSettings.PITCH_DOWN.GetKey (false)) {
 					manualRotation = manualRotation * Quaternion.AngleAxis ((float)((double)FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
 					commandedManualRotation += eva.transform.right;
-					KSPLog.print ("PITCH DOWN");
+					//KSPLog.print ("PITCH DOWN");
 				}
 
 				if (GameSettings.ROLL_RIGHT.GetKey (false)) {
 					manualRotation = manualRotation * Quaternion.AngleAxis ((float)(-(double)FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
 					commandedManualRotation -= eva.transform.forward;
-					KSPLog.print ("ROLL RIGHT");
+					//KSPLog.print ("ROLL RIGHT");
 				} else if (GameSettings.ROLL_LEFT.GetKey (false)) {
 					manualRotation = manualRotation * Quaternion.AngleAxis ((float)((double)FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
 					commandedManualRotation += eva.transform.forward;
-					KSPLog.print ("ROLL LEFT");
+					//KSPLog.print ("ROLL LEFT");
 				}
 
 				//Testing
@@ -130,17 +130,17 @@ namespace FirstPerson
 							+ Helpers.PairwiseMultiplyVectors (ki, imgr.state.rotationpid_integral)
 							+ Helpers.PairwiseMultiplyVectors (kd, derivative);
 
-						KSPLog.print ("currenterror: " + currenterror.ToString ());
-						KSPLog.print ("rotationpid_integral: " + imgr.state.rotationpid_integral.ToString ());
-						KSPLog.print ("derivative: " + derivative.ToString ());
+						//KSPLog.print ("currenterror: " + currenterror.ToString ());
+						//KSPLog.print ("rotationpid_integral: " + imgr.state.rotationpid_integral.ToString ());
+						//KSPLog.print ("derivative: " + derivative.ToString ());
 
 						imgr.state.rotationpid_previouserror = currenterror;
 
 						//Assign command
 						ReflectedMembers.eva_cmdRot.SetValue (eva, pidresult);
-						KSPLog.print ("SAS on, no command, PID result: " + pidresult.ToString () + ", actual velocity: " + angularvelocity.ToString ());
+						//KSPLog.print ("SAS on, no command, PID result: " + pidresult.ToString () + ", actual velocity: " + angularvelocity.ToString ());
 					} else {
-						KSPLog.print ("SAS off, no command");
+						//KSPLog.print ("SAS off, no command");
 
 						//This is so when landed the PID is reset.
 						imgr.state.rotationpid_integral = Vector3.zero;
@@ -158,7 +158,7 @@ namespace FirstPerson
 
 					ReflectedMembers.eva_cmdRot.SetValue (eva, commandedManualRotation);
 
-					KSPLog.print ("Manual command");
+					//KSPLog.print ("Manual command");
 				}
 
 				//************Translation************
@@ -166,38 +166,38 @@ namespace FirstPerson
 				if (GameSettings.TRANSLATE_LEFT.GetKey (false)) {
 					manualTranslation += Vector3.left;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
-					KSPLog.print ("TRANSLATE LEFT");
+					//KSPLog.print ("TRANSLATE LEFT");
 				} else if (GameSettings.TRANSLATE_RIGHT.GetKey (false)) {
 					manualTranslation += Vector3.right;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
-					KSPLog.print ("TRANSLATE RIGHT");
+					//KSPLog.print ("TRANSLATE RIGHT");
 				}
 
 				if (GameSettings.TRANSLATE_UP.GetKey (false)) {
 					manualTranslation += Vector3.up;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
-					KSPLog.print ("TRANSLATE UP");
+					//KSPLog.print ("TRANSLATE UP");
 				} else if (GameSettings.TRANSLATE_DOWN.GetKey (false)) {
 					manualTranslation += Vector3.down;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
-					KSPLog.print ("TRANSLATE DOWN");
+					//KSPLog.print ("TRANSLATE DOWN");
 				}
 
 				if (GameSettings.TRANSLATE_FWD.GetKey (false)) {
 					manualTranslation += Vector3.forward;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
-					KSPLog.print ("TRANSLATE RIGHT");
+					//KSPLog.print ("TRANSLATE RIGHT");
 				} else if (GameSettings.TRANSLATE_BACK.GetKey (false)) {
 					manualTranslation += Vector3.back;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
-					KSPLog.print ("TRANSLATE LEFT");
+					//KSPLog.print ("TRANSLATE LEFT");
 				}
 
 				manualTranslation.Normalize ();
 				manualTranslation = FlightGlobals.ActiveVessel.transform.rotation * manualTranslation;
 
-				KSPLog.print ("Resetting rpos. Old value: " + ((Vector3)ReflectedMembers.eva_packTgtRPos.GetValue (FlightGlobals.ActiveVessel.evaController)).ToString ()
-				+ ", new value: " + manualTranslation.ToString ());
+				//KSPLog.print ("Resetting rpos. Old value: " + ((Vector3)ReflectedMembers.eva_packTgtRPos.GetValue (FlightGlobals.ActiveVessel.evaController)).ToString ()
+				//+ ", new value: " + manualTranslation.ToString ());
 				ReflectedMembers.eva_packTgtRPos.SetValue (FlightGlobals.ActiveVessel.evaController, manualTranslation);
 
 				//************Set power**************
