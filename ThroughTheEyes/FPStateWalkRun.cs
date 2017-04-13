@@ -22,66 +22,77 @@ namespace FirstPerson
 		void evt_OnEnterFirstPerson(KerbalEVA eva)
 		{
 			//Hook it!
+
+			//*********************
+			//***Walk/Run States***
 			if (!(eva.st_walk_acd is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_walk_acd);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_walk_acd, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
 			}
 			if (!(eva.st_walk_fps is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_walk_fps);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_walk_fps, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
-			}
-			if (!(eva.st_heading_acquire is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_heading_acquire);
-				st.Hook (eva);
-				st.PreOnFixedUpdate += ResetControlOrientation;
 			}
 			if (!(eva.st_run_acd is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_run_acd);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_run_acd, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
 			}
 			if (!(eva.st_run_fps is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_run_fps);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_run_fps, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
 			}
 			if (!(eva.st_bound_gr_acd is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_gr_acd);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_gr_acd, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
 			}
 			if (!(eva.st_bound_gr_fps is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_gr_fps);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_gr_fps, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
 			}
 			if (!(eva.st_bound_fl is HookedKerbalFSMState)) {
-				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_fl);
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_bound_fl, IsThisEVAIVA);
 				st.Hook (eva);
-				st.PreOnEnter += ResetKerbalForward; //FORWARD
+				st.PreOnEnter += ResetKerbalForwardVector; //FORWARD
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += ApplyKerbalForwardTarget;
-				st.PostOnFixedUpdate += ResetDeltaHdg; //KEEP GOING FORWARD
+			}
+
+			//*********************
+			//***Turn to Heading***
+			if (!(eva.st_heading_acquire is HookedKerbalFSMState)) {
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_heading_acquire, IsThisEVAIVA);
+				st.Hook (eva);
+				st.PreOnEnter += ForceArcadeMode;
+				st.PreOnFixedUpdate += ResetControlOrientation;
+			}
+
+			//*******************
+			//***Idle Grounded***
+			if (!(eva.st_idle_gr is HookedKerbalFSMState)) {
+				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_idle_gr, IsThisEVAIVA);
+				st.Hook (eva);
+				st.PreOnEnter += ResetJetpackManualControls;
+				st.PreOnFixedUpdate += ForceArcadeMode;
+				st.PreOnFixedUpdate += GroundedJetpackCheck_PreFixedUpdate;
+				st.PostOnFixedUpdate += GroundedJetpackCheck_PostFixedUpdate;
 			}
 
 			walk_start_fwd = eva.transform.forward;
@@ -93,11 +104,13 @@ namespace FirstPerson
 
 		}
 
-		void ResetKerbalForward(KerbalEVA eva, KFSMState s)
+		bool IsThisEVAIVA(KerbalEVA eva)
 		{
-			if (!imgr.fpCameraManager.isFirstPerson || FlightGlobals.ActiveVessel == null || imgr.fpCameraManager.currentfpeva != eva)
-				return;
-			
+			return imgr.fpCameraManager.isFirstPerson && FlightGlobals.ActiveVessel != null && imgr.fpCameraManager.currentfpeva == eva;
+		}
+
+		void ResetKerbalForwardVector(KerbalEVA eva, KFSMState s)
+		{
 			walk_start_fwd = eva.transform.forward;
 			target_fwd = walk_start_fwd;
 			//ReflectedMembers.eva_deltaHdg.SetValue (eva, 0f);
@@ -108,13 +121,20 @@ namespace FirstPerson
 
 		void ApplyKerbalForwardTarget(KerbalEVA eva)
 		{
-			if (!imgr.fpCameraManager.isFirstPerson || FlightGlobals.ActiveVessel == null || imgr.fpCameraManager.currentfpeva != eva)
-				return;
-			
 			ReflectedMembers.eva_tgtUp.SetValue (eva, eva.fUp);
 			ReflectedMembers.eva_tgtFwd.SetValue (eva, target_fwd);
 		}
 
+		void ResetJetpackManualControls(KerbalEVA eva, KFSMState s)
+		{
+			//When jetpacking, the kerbal may have been in manual axis control.
+			//We are now grounded, so that needs to be disabled or we will sidestep-walk
+			//rather than turning.
+			ReflectedMembers.eva_manualAxisControl.SetValue (eva, false);
+			ReflectedMembers.eva_cmdRot.SetValue (eva, Vector3.zero);
+		}
+
+		/*
 		void ResetDeltaHdg(KerbalEVA eva)
 		{
 			if (!imgr.fpCameraManager.isFirstPerson || FlightGlobals.ActiveVessel == null || imgr.fpCameraManager.currentfpeva != eva)
@@ -123,12 +143,34 @@ namespace FirstPerson
 			//ReflectedMembers.eva_deltaHdg.SetValue (eva, 0f);
 			//ReflectedMembers.eva_lastDeltaHdg.SetValue (eva, 0f);
 		}
+		*/
+
+		void ForceArcadeMode(KerbalEVA eva)
+		{
+			ForceArcadeMode (eva, null);
+		}
+		void ForceArcadeMode(KerbalEVA eva, KFSMState s)
+		{
+			//Force arcade mode walking
+			eva.CharacterFrameModeToggle = false;
+		}
+
+		void GroundedJetpackCheck_PreFixedUpdate(KerbalEVA eva)
+		{
+			//If the jetpack is on, use jetpack controls while grounded.
+			if (eva.JetpackDeployed)
+				FirstPersonEVA.instance.fpStateFloating.evtHook_PreOnFixedUpdate (eva);
+		}
+
+		void GroundedJetpackCheck_PostFixedUpdate(KerbalEVA eva)
+		{
+			//If the jetpack is on, use jetpack controls while grounded.
+			if (eva.JetpackDeployed)
+				FirstPersonEVA.instance.fpStateFloating.evtHook_PostOnFixedUpdate (eva);
+		}
 
 		void ResetControlOrientation(KerbalEVA eva)
 		{
-			if (!imgr.fpCameraManager.isFirstPerson || FlightGlobals.ActiveVessel == null || imgr.fpCameraManager.currentfpeva != eva)
-				return;
-
 			ReflectedMembers.Initialize ();
 
 			//Finished turn to heading.
@@ -148,6 +190,8 @@ namespace FirstPerson
 			ReflectedMembers.eva_ladderTgtRPos.SetValue (eva, Vector3.zero);
 			ReflectedMembers.eva_packTgtRPos.SetValue (eva, Vector3.zero);
 			ReflectedMembers.eva_packRRot.SetValue (eva, Vector3.zero);
+
+			ForceArcadeMode (eva);
 
 			ReflectedMembers.eva_m_HandleMovementInput.Invoke (eva, null);
 		}

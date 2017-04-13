@@ -22,11 +22,16 @@ namespace FirstPerson
 		{
 			//Hook it!
 			if (!(eva.st_idle_fl is HookedKerbalFSMState)) {
-				HookedKerbalFSMState newst = new HookedKerbalFSMState (eva.st_idle_fl);
+				HookedKerbalFSMState newst = new HookedKerbalFSMState (eva.st_idle_fl, IsThisEVAIVA);
 				newst.Hook (eva);
 				newst.PreOnFixedUpdate += evtHook_PreOnFixedUpdate;
 				newst.PostOnFixedUpdate += evtHook_PostOnFixedUpdate;
 			}
+		}
+
+		bool IsThisEVAIVA(KerbalEVA eva)
+		{
+			return imgr.fpCameraManager.isFirstPerson && FlightGlobals.ActiveVessel != null && imgr.fpCameraManager.currentfpeva == eva;
 		}
 
 		void evt_OnExitFirstPerson(KerbalEVA eva)
@@ -63,15 +68,13 @@ namespace FirstPerson
 			throttlegauge_.gauge.SetValue (imgr.state.eva_throttle);
 		}
 
-		void evtHook_PreOnFixedUpdate (KerbalEVA eva)
+		public void evtHook_PreOnFixedUpdate (KerbalEVA eva)
 		{
-			if (!imgr.fpCameraManager.isFirstPerson || FlightGlobals.ActiveVessel == null || imgr.fpCameraManager.currentfpeva != eva)
-				return;
-
 			ReflectedMembers.Initialize ();
 
 			if ((FlightGlobals.ActiveVessel.situation != Vessel.Situations.SPLASHED
-			     && FlightGlobals.ActiveVessel.situation != Vessel.Situations.LANDED)
+			     //&& FlightGlobals.ActiveVessel.situation != Vessel.Situations.LANDED //Allow landed jetpack operation
+			)
 			     && FlightGlobals.ActiveVessel.evaController.JetpackDeployed) {
 
 				//************Rotation************
@@ -117,7 +120,7 @@ namespace FirstPerson
 					//No rotation controls active. SAS active, maybe.
 
 					//Set manual mode based on SAS mode.
-					if (GameSettings.EVA_ROTATE_ON_MOVE) {
+					if (GameSettings.EVA_ROTATE_ON_MOVE && FlightGlobals.ActiveVessel.situation != Vessel.Situations.LANDED) {
 						//Run PID.
 						Vector3 angularvelocity = eva.part.Rigidbody.angularVelocity;
 						Vector3 currenterror = -Helpers.ClampVectorComponents (angularvelocity, -0.5f, 0.5f);
@@ -138,6 +141,11 @@ namespace FirstPerson
 						KSPLog.print ("SAS on, no command, PID result: " + pidresult.ToString () + ", actual velocity: " + angularvelocity.ToString ());
 					} else {
 						KSPLog.print ("SAS off, no command");
+
+						//This is so when landed the PID is reset.
+						imgr.state.rotationpid_integral = Vector3.zero;
+						imgr.state.rotationpid_previouserror = Vector3.zero;
+
 						//Idle and SAS off. Do nothing.
 						ReflectedMembers.eva_cmdRot.SetValue (eva, Vector3.zero);
 					}
@@ -158,31 +166,31 @@ namespace FirstPerson
 				if (GameSettings.TRANSLATE_LEFT.GetKey (false)) {
 					manualTranslation += Vector3.left;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
-					KSPLog.print ("YAW LEFT");
+					KSPLog.print ("TRANSLATE LEFT");
 				} else if (GameSettings.TRANSLATE_RIGHT.GetKey (false)) {
 					manualTranslation += Vector3.right;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.up);
-					KSPLog.print ("YAW RIGHT");
+					KSPLog.print ("TRANSLATE RIGHT");
 				}
 
 				if (GameSettings.TRANSLATE_UP.GetKey (false)) {
 					manualTranslation += Vector3.up;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
-					KSPLog.print ("PITCH UP");
+					KSPLog.print ("TRANSLATE UP");
 				} else if (GameSettings.TRANSLATE_DOWN.GetKey (false)) {
 					manualTranslation += Vector3.down;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.right);
-					KSPLog.print ("PITCH DOWN");
+					KSPLog.print ("TRANSLATE DOWN");
 				}
 
 				if (GameSettings.TRANSLATE_FWD.GetKey (false)) {
 					manualTranslation += Vector3.forward;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) (-(double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
-					KSPLog.print ("ROLL RIGHT");
+					KSPLog.print ("TRANSLATE RIGHT");
 				} else if (GameSettings.TRANSLATE_BACK.GetKey (false)) {
 					manualTranslation += Vector3.back;
 					//manualRotation = manualRotation * Quaternion.AngleAxis((float) ((double) FlightGlobals.ActiveVessel.evaController.turnRate * 57.2957801818848) * Time.deltaTime, FlightGlobals.ActiveVessel.evaController.transform.forward);
-					KSPLog.print ("ROLL LEFT");
+					KSPLog.print ("TRANSLATE LEFT");
 				}
 
 				manualTranslation.Normalize ();
@@ -199,11 +207,8 @@ namespace FirstPerson
 			}
 		}
 
-		void evtHook_PostOnFixedUpdate (KerbalEVA eva)
+		public void evtHook_PostOnFixedUpdate (KerbalEVA eva)
 		{
-			if (!imgr.fpCameraManager.isFirstPerson || FlightGlobals.ActiveVessel == null || imgr.fpCameraManager.currentfpeva != eva)
-				return;
-
 			ReflectedMembers.Initialize();
 
 			//Recalculate fuel flow: proportional to power factor
@@ -217,7 +222,7 @@ namespace FirstPerson
 				newflowrate += cmdrot.magnitude * Time.fixedDeltaTime * eva.rotPower / 1f;
 				newflowrate += packlinear.magnitude * Time.fixedDeltaTime * eva.linPower / 0.3f;
 
-				KSPLog.print ("Flow rates: " + ((float)ReflectedMembers.eva_fuelFlowRate.GetValue(eva)).ToString() + " -> " + newflowrate.ToString());
+				//KSPLog.print ("Flow rates: " + ((float)ReflectedMembers.eva_fuelFlowRate.GetValue(eva)).ToString() + " -> " + newflowrate.ToString());
 				ReflectedMembers.eva_fuelFlowRate.SetValue (eva, newflowrate);
 			}
 		}

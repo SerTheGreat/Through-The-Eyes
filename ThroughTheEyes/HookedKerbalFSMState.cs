@@ -9,6 +9,8 @@ namespace FirstPerson
 		bool ishooked = false;
 		KerbalEVA eva;
 
+		public delegate bool delHookCondition(KerbalEVA eva);
+		public event delHookCondition HookCondition;
 		public delegate void delHookedKFSMStateChange(KerbalEVA eva, KFSMState st);
 		public delegate void delHookedKFSMCallback(KerbalEVA eva);
 		public event delHookedKFSMStateChange PreOnEnter;
@@ -22,10 +24,12 @@ namespace FirstPerson
 		public event delHookedKFSMCallback PreOnLateUpdate;
 		public event delHookedKFSMCallback PostOnLateUpdate;
 
-		public HookedKerbalFSMState (KFSMState poriginalstate)
+		public HookedKerbalFSMState (KFSMState poriginalstate, delHookCondition hookoperationcondition)
 			:base(poriginalstate.name)
 		{
 			originalstate = poriginalstate;
+
+			HookCondition = hookoperationcondition;
 
 			updateMode = originalstate.updateMode;
 			OnEnter = new KFSMStateChange (H_OnEnter);
@@ -102,46 +106,46 @@ namespace FirstPerson
 
 		void H_OnEnter(KFSMState s)
 		{
-			if (PreOnEnter != null)
+			if (PreOnEnter != null && HookCondition(eva))
 				PreOnEnter (eva, s);
 			originalstate.OnEnter (s);
-			if (PostOnEnter != null)
+			if (PostOnEnter != null && HookCondition(eva))
 				PostOnEnter (eva, s);
 		}
 
 		void H_OnLeave(KFSMState s)
 		{
-			if (PreOnLeave != null)
+			if (PreOnLeave != null && HookCondition(eva))
 				PreOnLeave (eva, s);
 			originalstate.OnLeave (s);
-			if (PostOnLeave != null)
+			if (PostOnLeave != null && HookCondition(eva))
 				PostOnLeave (eva, s);
 		}
 
 		void H_OnUpdate()
 		{
-			if (PreOnUpdate != null)
+			if (PreOnUpdate != null && HookCondition(eva))
 				PreOnUpdate (eva);
 			originalstate.OnUpdate ();
-			if (PostOnUpdate != null)
+			if (PostOnUpdate != null && HookCondition(eva))
 				PostOnUpdate (eva);
 		}
 
 		void H_OnFixedUpdate()
 		{
-			if (PreOnFixedUpdate != null)
+			if (PreOnFixedUpdate != null && HookCondition(eva))
 				PreOnFixedUpdate (eva);
 			originalstate.OnFixedUpdate ();
-			if (PostOnFixedUpdate != null)
+			if (PostOnFixedUpdate != null && HookCondition(eva))
 				PostOnFixedUpdate (eva);
 		}
 
 		void H_OnLateUpdate()
 		{
-			if (PreOnLateUpdate != null)
+			if (PreOnLateUpdate != null && HookCondition(eva))
 				PreOnLateUpdate (eva);
 			originalstate.OnLateUpdate ();
-			if (PostOnLateUpdate != null)
+			if (PostOnLateUpdate != null && HookCondition(eva))
 				PostOnLateUpdate (eva);
 		}
 
