@@ -133,6 +133,7 @@ namespace FirstPerson
 			if (!(eva.st_heading_acquire is HookedKerbalFSMState)) {
 				HookedKerbalFSMState st = new HookedKerbalFSMState (eva.st_heading_acquire, IsThisEVAIVA);
 				st.Hook (eva);
+				st.PreOnEnter += ResetTurningBasisVector;
 				st.PreOnFixedUpdate += ForceArcadeMode;
 				st.PreOnFixedUpdate += ResetControlOrientation;
 				st.PreOnFixedUpdate += Replacement_CorrectGroundedRotation;
