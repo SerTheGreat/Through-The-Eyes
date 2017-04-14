@@ -33,14 +33,14 @@ namespace FirstPerson
         }
 
 		void disableKeys() {
-			keyDisabler.disableKey(KeyDisabler.CAMERA_MODE);
+			keyDisabler.disableKey(KeyDisabler.eKeyCommand.CAMERA_MODE, KeyDisabler.eDisableLockSource.MainModule);
 			if (CameraManager.Instance.currentCameraMode == IVA && !FlightGlobals.ActiveVessel.isEVA && FlightGlobals.ActiveVessel.GetCrewCount() < 2) {
-				keyDisabler.disableKey(KeyDisabler.CAMERA_NEXT);
+				keyDisabler.disableKey(KeyDisabler.eKeyCommand.CAMERA_NEXT, KeyDisabler.eDisableLockSource.MainModule);
 			} else {
-				keyDisabler.restoreKey(KeyDisabler.CAMERA_NEXT);
+				keyDisabler.restoreKey(KeyDisabler.eKeyCommand.CAMERA_NEXT, KeyDisabler.eDisableLockSource.MainModule);
 			}
 			if (disableMapView) {
-				keyDisabler.disableKey(KeyDisabler.MAP_VIEW);
+				keyDisabler.disableKey(KeyDisabler.eKeyCommand.MAP_VIEW, KeyDisabler.eDisableLockSource.MainModule);
 			}
 		}
 
@@ -86,7 +86,7 @@ namespace FirstPerson
         void Start()
         {
 
-			keyDisabler = KeyDisabler.initialize();
+			keyDisabler = KeyDisabler.instance;
 			
             /*GameEvents.onLaunch.Add((v) =>
             {
@@ -116,8 +116,8 @@ namespace FirstPerson
                     }
                     if (!externalMaintenainceAvailable(pVessel)) {
 						disableKeys();
-					} else if (keyDisabler.keysDisabled) {
-						keyDisabler.restoreAllKeys();
+					} else {
+						keyDisabler.restoreAllKeys(KeyDisabler.eDisableLockSource.MainModule);
 					}
                     if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(EVAKey)) {
 						KeyControls.GoEVA();

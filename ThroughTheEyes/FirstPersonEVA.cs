@@ -22,6 +22,7 @@ namespace FirstPerson
     	
 		bool forceEVA;
 		KeyCode toggleFirstPersonKey;
+		KeyBinding resetivacamerabinding;
 
 		private const float mouseViewSensitivity = 3000f; //TODO take into account in-game mouse view sensitivity
 		public EVAIVAState state = new EVAIVAState();
@@ -38,6 +39,8 @@ namespace FirstPerson
 			if (v != null && v == FlightGlobals.ActiveVessel && v.isEVA) {
 				fpCameraManager.resetCamera (v);
 			}
+
+			KeyDisabler.instance.restoreAllKeys (KeyDisabler.eDisableLockSource.FirstPersonEVA);
 		}
 		
 		private void onVesselSwitching(Vessel from, Vessel to) {
@@ -45,6 +48,8 @@ namespace FirstPerson
 			if (((Vessel)to).isEVA) {
 				CameraManager.Instance.SetCameraFlight();
 			}
+
+			KeyDisabler.instance.restoreAllKeys (KeyDisabler.eDisableLockSource.FirstPersonEVA);
 		}
 		
 		private void onMapExited() {
@@ -56,6 +61,8 @@ namespace FirstPerson
 		private void onSceneLoadRequested(GameScenes scene) {
 			//This is needed to avoid fighting stock camera during "Revert to launch" as that causes NullRefences in Unity breaking the revert process
 			stopTouchingCamera = true;
+
+			KeyDisabler.instance.restoreAllKeys (KeyDisabler.eDisableLockSource.FirstPersonEVA);
 		}
 		
 		void Start()
@@ -75,6 +82,12 @@ namespace FirstPerson
 			fpStateFloating = new FPStateFloating (this);
 			fpStateWalkRun = new FPStateWalkRun (this);
  			
+			//We unbind the main one, so this allows us to still read the key state.
+			resetivacamerabinding = new KeyBinding ();
+			KeyCode[] resetcameracodes = KeyDisabler.instance.GetSavedKeyCodes (KeyDisabler.eKeyCommand.CAMERA_NEXT);
+			resetivacamerabinding.primary = resetcameracodes [0];
+			resetivacamerabinding.secondary = resetcameracodes [1];
+
 			GameEvents.onVesselDestroy.Add(onVesselDestroy);
 			/*GameEvents.onCrewKilled.Add((v) => {
            		fpCameraManager.resetCamera(null);
@@ -117,7 +130,7 @@ namespace FirstPerson
 
 			}
 
-			if (fpCameraManager.isFirstPerson && GameSettings.CAMERA_NEXT.GetKeyDown ()) {
+			if (fpCameraManager.isFirstPerson && resetivacamerabinding.GetKeyDown ()) {
 				fpCameraManager.viewToNeutral ();
 				fpCameraManager.reorient ();
 			}
@@ -147,40 +160,11 @@ namespace FirstPerson
 					//fpCameraManager.viewToNeutral();
 					fpCameraManager.reorient();
 				}
-					
-				/////////////////////////////////////////////////////////
-				System.Reflection.FieldInfo mi_states = null;
-				//List<KFSMState> States;
-
-				System.Reflection.FieldInfo mi_currentstate = null;
-				//KFSMState currentState;
-
-				System.Reflection.FieldInfo mi_laststate = null;
-				//KFSMState lastState;
-
-				System.Reflection.MemberInfo[] mi = typeof(KerbalFSM).FindMembers(System.Reflection.MemberTypes.Field, System.Reflection.BindingFlags.SetField| System.Reflection.BindingFlags.GetField| System.Reflection.BindingFlags.Instance | System.Reflection.BindingFlags.NonPublic, null, null);
-				foreach (System.Reflection.MemberInfo m in mi) {
-					if (m.Name == "States")
-						mi_states = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "currentState")
-						mi_currentstate = (System.Reflection.FieldInfo)m;
-					else if (m.Name == "lastState")
-						mi_laststate = (System.Reflection.FieldInfo)m;
-				}
-
-				KFSMState cur = (          (KFSMState)mi_currentstate.GetValue (FlightGlobals.ActiveVessel.evaController.fsm)        );
-				//string disp = "State: " + cur.name + ", " + cur.GetType ().ToString ();
-				//if (DEBUGlaststatedisplay != disp) {
-				//	DEBUGlaststatedisplay = disp;
-				//	KSPLog.print (disp);
-				//}
-				/// ///////////////////////////////////////////////////////
 			}
 
 			if (OnFixedUpdate != null)
 				OnFixedUpdate (this, null);
 		}
-		//string DEBUGlaststatedisplay = null;
 
 		void LateUpdate()
 		{

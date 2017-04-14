@@ -6,89 +6,106 @@ namespace FirstPerson
 {
 	public class KeyDisabler
 	{
-
-		public const int CAMERA_MODE = 0;
-		public const int CAMERA_NEXT = 1;
-		public const int MAP_VIEW = 2;
-
-		List<KeyBinding> keyBindings = new List<KeyBinding>
+		public enum eKeyCommand : int
 		{
-			GameSettings.CAMERA_MODE,
-			GameSettings.CAMERA_NEXT,
-			GameSettings.MAP_VIEW_TOGGLE,
-		};
+			CAMERA_MODE = 0,
+			CAMERA_NEXT = 1,
+			MAP_VIEW = 2,
+		}
 
-		static List<KeyCode> keySaver = new List<KeyCode>()
+		public enum eDisableLockSource
 		{
-			GameSettings.CAMERA_MODE.primary,
-			GameSettings.CAMERA_MODE.secondary,
-			GameSettings.CAMERA_NEXT.primary,
-			GameSettings.CAMERA_NEXT.secondary,
-			GameSettings.MAP_VIEW_TOGGLE.primary,
-			GameSettings.MAP_VIEW_TOGGLE.secondary,
-		};
+			MainModule,
+			FirstPersonEVA,
+		}
 
-		public bool keysDisabled;
+		Dictionary<eKeyCommand, KeyBinding> KeyEnumToClassTranslator;
+		Dictionary<eKeyCommand, KeyCode[]> KeySaver;
+		Dictionary<eKeyCommand, List<eDisableLockSource>> KeyLocks = new Dictionary<eKeyCommand, List<eDisableLockSource>>();
 
 		private KeyDisabler()
 		{
+			KeyEnumToClassTranslator = new Dictionary<eKeyCommand, KeyBinding> ();
+			KeyEnumToClassTranslator [eKeyCommand.CAMERA_MODE] = GameSettings.CAMERA_MODE;
+			KeyEnumToClassTranslator [eKeyCommand.CAMERA_NEXT] = GameSettings.CAMERA_NEXT;
+			KeyEnumToClassTranslator [eKeyCommand.MAP_VIEW] = GameSettings.MAP_VIEW_TOGGLE;
+
+			KeySaver = new Dictionary<eKeyCommand, KeyCode[]> ();
+			KeySaver [eKeyCommand.CAMERA_MODE] = new KeyCode[] { GameSettings.CAMERA_MODE.primary, GameSettings.CAMERA_MODE.secondary };
+			KeySaver [eKeyCommand.CAMERA_NEXT] = new KeyCode[] {GameSettings.CAMERA_NEXT.primary, GameSettings.CAMERA_NEXT.secondary };
+			KeySaver [eKeyCommand.MAP_VIEW] = new KeyCode[] { GameSettings.MAP_VIEW_TOGGLE.primary, GameSettings.MAP_VIEW_TOGGLE.secondary };
+
 		}
 
 		static KeyDisabler inst = null;
-		public static KeyDisabler initialize() {
-			if (inst == null)
-				inst = new KeyDisabler ();
-			return inst;
+		public static KeyDisabler instance {
+			get{
+				if (inst == null)
+					inst = new KeyDisabler ();
+				return inst;
+			}
 		}
 
-		/*public void disableKeys(bool disableMapView)
+		public KeyCode[] GetSavedKeyCodes(eKeyCommand index)
 		{
+			return KeySaver [index];
+		}
 
-			if (keysDisabled) {
+		public void disableKey(eKeyCommand index, eDisableLockSource source)
+		{
+			if (KeyLocks.ContainsKey (index) && KeyLocks[index].Count > 0) {
+				//Already locked.
+				if (!KeyLocks [index].Contains (source))
+					KeyLocks [index].Add (source);
+			} else {
+				if (!KeyLocks.ContainsKey (index))
+					KeyLocks [index] = new List<eDisableLockSource> ();
+				KeyLocks [index].Add (source);
+				KeyEnumToClassTranslator [index].primary = KeyCode.None;
+				KeyEnumToClassTranslator [index].secondary = KeyCode.None;
+			}
+		}
+
+		public void restoreKey(eKeyCommand index, eDisableLockSource source)
+		{
+			//Make sure we hold a lock.
+			if (!KeyLocks.ContainsKey (index))
 				return;
+			if (!KeyLocks [index].Contains (source))
+				return;
+
+			KeyLocks [index].Remove (source);
+			if (KeyLocks [index].Count == 0) {
+				KeyEnumToClassTranslator [index].primary = KeySaver [index] [0];
+				KeyEnumToClassTranslator [index].secondary = KeySaver [index] [1];
 			}
-
-			for (int i=0; i < keyBindings.Count; i++)
-			{
-				KeyBinding k = keyBindings[i];
-				if (disableMapView)
-				{
-					k.primary = KeyCode.None;
-					k.secondary = KeyCode.None;
-				}
-				else
-				{
-					if (k != GameSettings.MAP_VIEW_TOGGLE)
-					{
-						disableMapView();
-					}
-
-				}
-			}
-			keysDisabled = true;
-
-		}*/
+		}
 
 		public void restoreAllKeys()
 		{
-			for (int i=0; i < keyBindings.Count; i++)
-			{
-				restoreKey(i);
+			foreach (KeyValuePair<eKeyCommand, List<eDisableLockSource>> kp in KeyLocks) {
+				if (kp.Value.Count > 0) {
+					KeyEnumToClassTranslator [kp.Key].primary = KeySaver [kp.Key] [0];
+					KeyEnumToClassTranslator [kp.Key].secondary = KeySaver [kp.Key] [1];
+				}
+				kp.Value.Clear ();
 			}
-			keysDisabled = false;
+		}
+
+		public void restoreAllKeys(eDisableLockSource source)
+		{
+			foreach (KeyValuePair<eKeyCommand, List<eDisableLockSource>> kp in KeyLocks) {
+				if (kp.Value.Count > 0 && kp.Value.Contains(source)) {
+					kp.Value.Remove (source);
+					if (kp.Value.Count == 0) {
+						KeyEnumToClassTranslator [kp.Key].primary = KeySaver [kp.Key] [0];
+						KeyEnumToClassTranslator [kp.Key].secondary = KeySaver [kp.Key] [1];
+					}
+				}
+			}
 		}
 
 
-		public void disableKey(int index) {
-			keyBindings[index].primary = KeyCode.None;
-			keyBindings[index].secondary = KeyCode.None;
-		}
-
-		public void restoreKey(int index) {
-			int saverIndex = index * 2;
-			keyBindings[index].primary = keySaver[saverIndex];
-			keyBindings[index].secondary = keySaver[saverIndex + 1];
-		}
 
 	}
 }

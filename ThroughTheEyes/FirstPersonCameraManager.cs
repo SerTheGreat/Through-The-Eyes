@@ -55,6 +55,8 @@ namespace FirstPerson
 					if (OnEnterFirstPerson != null)
 						OnEnterFirstPerson (pVessel.evaController);
 				}
+
+				KeyDisabler.instance.disableKey (KeyDisabler.eKeyCommand.CAMERA_NEXT, KeyDisabler.eDisableLockSource.FirstPersonEVA);
 			}
 			else
 			{
@@ -66,6 +68,8 @@ namespace FirstPerson
 				{
 					cameraState.saveState(flightCam);
 				}
+
+				KeyDisabler.instance.restoreKey (KeyDisabler.eKeyCommand.CAMERA_NEXT, KeyDisabler.eDisableLockSource.FirstPersonEVA);
 			}
 		}
 
@@ -165,6 +169,7 @@ namespace FirstPerson
 				previousVessel.evaController.linPower = 0.3f;
 			}
 
+			KeyDisabler.instance.restoreAllKeys (KeyDisabler.eDisableLockSource.FirstPersonEVA);
 		}
 		
 		public bool isCameraProperlyPositioned(FlightCamera flightCam) {
