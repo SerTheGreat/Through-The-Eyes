@@ -388,11 +388,15 @@ namespace FirstPerson
 				|| eva.fsm.CurrentState == eva.st_bound_gr_acd
 				|| eva.fsm.CurrentState == eva.st_bound_gr_fps
 				|| eva.fsm.CurrentState == eva.st_bound_fl)
-				&& (GameSettings.EVA_left.GetKey() || GameSettings.EVA_right.GetKey())
-				&& !(GameSettings.EVA_forward.GetKey() || GameSettings.EVA_back.GetKey())
-			)
-				ReflectedMembers.eva_deltaHdg.SetValue (eva, 61f);
-
+				&& (GameSettings.EVA_left.GetKey () || GameSettings.EVA_right.GetKey ())
+				&& !(GameSettings.EVA_forward.GetKey () || GameSettings.EVA_back.GetKey ()))
+			{
+				//Note that the direction of this is used to tilt the kerbal into the turn.
+				if (GameSettings.EVA_left.GetKey ())
+					ReflectedMembers.eva_deltaHdg.SetValue (eva, -61f);
+				else
+					ReflectedMembers.eva_deltaHdg.SetValue (eva, 61f);
+			}
 			//Likewise if we are turning only and forward/back is pressed, go back to walk state.
 			else if (
 				(eva.fsm.CurrentState == eva.st_heading_acquire)
