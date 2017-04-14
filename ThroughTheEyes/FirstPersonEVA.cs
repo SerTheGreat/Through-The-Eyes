@@ -117,6 +117,11 @@ namespace FirstPerson
 
 			}
 
+			if (fpCameraManager.isFirstPerson && GameSettings.CAMERA_NEXT.GetKeyDown ()) {
+				fpCameraManager.viewToNeutral ();
+				fpCameraManager.reorient ();
+			}
+
 			if (OnUpdate != null)
 				OnUpdate (this, null);
 		}
@@ -133,7 +138,7 @@ namespace FirstPerson
 				} //button held down
 
 				if (FlightGlobals.ActiveVessel.Landed && (GameSettings.EVA_back.GetKey() || GameSettings.EVA_forward.GetKey())) {
-					fpCameraManager.viewToNeutral();
+					//fpCameraManager.viewToNeutral();
 					fpCameraManager.reorient();
 					//FlightCamera.fetch.transform.rotation = state.kerballookrotation;
 				}

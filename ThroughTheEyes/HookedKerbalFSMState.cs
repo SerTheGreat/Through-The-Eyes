@@ -110,6 +110,7 @@ namespace FirstPerson
 
 		void H_OnEnter(KFSMState s)
 		{
+			//KSPLog.print ("ENTER STATE: " + originalstate.name);
 			if (HookCondition (eva)) {
 				if (PreOnEnter != null)
 					PreOnEnter (eva, s);

@@ -34,9 +34,11 @@ namespace FirstPerson
 		{
 		}
 
+		static KeyDisabler inst = null;
 		public static KeyDisabler initialize() {
-			return new KeyDisabler();
-
+			if (inst == null)
+				inst = new KeyDisabler ();
+			return inst;
 		}
 
 		/*public void disableKeys(bool disableMapView)
