@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using UnityEngine;
 
 namespace FirstPerson
@@ -20,7 +21,7 @@ namespace FirstPerson
 		private FPGUI fpgui;
 		
 		private Vector3 eyeOffset = Vector3.zero;//Vector3.forward * 0.1F; //Eyes don't exist at a point when you move your head
-		private Vector3 headLocation = Vector3.up * .35f; // Where the centre of the head is
+		private Vector3 headLocation = Vector3.up * .31f; // Where the centre of the head is
 
 		public delegate void delEvtEVA(KerbalEVA eva);
 		public event delEvtEVA OnEnterFirstPerson;
@@ -46,12 +47,12 @@ namespace FirstPerson
 				    && !pVessel.packed //this prevents altering camera until EVA is unpacked or else various weird effects are possible
 				   )
 				{
+					currentfpeva = pVessel.evaController;
 					SetFirstPersonCameraSettings (pVessel.evaController);
 
 					//Enter first person
 					FirstPersonEVA.instance.state.Reset (pVessel.evaController);
 
-					currentfpeva = pVessel.evaController;
 					if (OnEnterFirstPerson != null)
 						OnEnterFirstPerson (pVessel.evaController);
 				}
@@ -173,8 +174,8 @@ namespace FirstPerson
 		}
 		
 		public bool isCameraProperlyPositioned(FlightCamera flightCam) {
-			//Not a particular ellegant way to determine if camera isn't crapped by some background stock logic or change view attempts:
-			return Vector3.Distance(flightCam.transform.localPosition, getFPCameraPosition(getFPCameraRotation())) < 0.001f;
+			//Not a particularly elegant way to determine if camera isn't crapped by some background stock logic or change view attempts:
+			return Vector3.Distance(flightCam.transform.localPosition, getFPCameraPosition(getFPCameraRotation(), currentfpeva)) < 0.001f;
 		}
 		
 		public void updateGUI() {
@@ -207,15 +208,25 @@ namespace FirstPerson
 			return Quaternion.Euler(0.0F, yaw, 0.0F) * Quaternion.Euler(-pitch, 0.0F, 0.0F);
 		}
 
-		private Vector3 getFPCameraPosition(Quaternion rotation) {
-			return headLocation + rotation * eyeOffset;
+		private Vector3 getFPCameraPosition(Quaternion rotation, KerbalEVA eva) {
+			Vector3 ret = headLocation + rotation * eyeOffset;
+			if (eva.part != null) {
+				List<ProtoCrewMember> c = eva.part.protoModuleCrew;
+				if (c != null && c.Count > 0) {
+					if (c [0].gender == ProtoCrewMember.Gender.Female) {
+						ret += new Vector3 (GameSettings.FEMALE_EYE_OFFSET_X, GameSettings.FEMALE_EYE_OFFSET_Y, GameSettings.FEMALE_EYE_OFFSET_Z);
+						//Female
+					}
+				}
+			}
+			return ret;
 		}
 
 		public void reorient() {
 			Quaternion rotation = getFPCameraRotation();
 			Vector3 cameraForward = rotation * Vector3.forward;
 			Vector3 cameraUp = rotation * Vector3.up;
-			Vector3 cameraPosition = getFPCameraPosition(rotation);
+			Vector3 cameraPosition = getFPCameraPosition(rotation, currentfpeva);
 			FlightCamera flightCam = FlightCamera.fetch;
 
 			//KSPLog.print ("prereorient cam fwd: " + flightCam.transform.forward.ToString () + ", maincam fwd: " + flightCam.mainCamera.transform.forward.ToString ());
@@ -226,7 +237,7 @@ namespace FirstPerson
 			//flightCam.mainCamera.transform.localRotation = Quaternion.LookRotation(cameraForward, cameraUp);
 			//flightCam.mainCamera.transform.localPosition = cameraPosition;
 
-			flightCam.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
+			flightCam.transform.parent = currentfpeva.transform;
 			//flightCam.mainCamera.transform.parent = FlightGlobals.ActiveVessel.evaController.transform;
 
 			//KSPLog.print (string.Format ("REORIENT Forward: {0}, Up: {1}, Position: {2}", cameraForward, cameraUp, cameraPosition));
