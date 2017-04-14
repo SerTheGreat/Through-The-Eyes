@@ -115,6 +115,14 @@ namespace FirstPerson
 				Vector3 ki = new Vector3 (0.25f, 0.25f, 0.25f);
 				Vector3 kd = new Vector3 (0.001f, 0.001f, 0.001f);
 
+				//Reduce pid response in physical time acceleration.
+				if (TimeWarp.WarpMode == TimeWarp.Modes.LOW) {
+					float warprate = TimeWarp.fetch.physicsWarpRates [TimeWarp.fetch.current_rate_index];
+					if (warprate > 1f) {
+						kp = kp / warprate;
+					}
+				}
+
 				ReflectedMembers.eva_manualAxisControl.SetValue (eva, true);
 				if (manualRotation == Quaternion.identity) {
 					//No rotation controls active. SAS active, maybe.
