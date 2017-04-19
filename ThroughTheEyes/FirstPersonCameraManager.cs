@@ -210,7 +210,7 @@ namespace FirstPerson
 
 		private Vector3 getFPCameraPosition(Quaternion rotation, KerbalEVA eva) {
 			Vector3 ret = headLocation + rotation * eyeOffset;
-			if (eva.part != null) {
+			if ((eva != null) && (eva.part != null)) {
 				List<ProtoCrewMember> c = eva.part.protoModuleCrew;
 				if (c != null && c.Count > 0) {
 					if (c [0].gender == ProtoCrewMember.Gender.Female) {
