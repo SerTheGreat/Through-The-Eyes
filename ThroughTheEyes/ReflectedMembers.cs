@@ -29,12 +29,14 @@ namespace FirstPerson
 		internal static System.Reflection.FieldInfo eva_integral = null;
 		internal static System.Reflection.FieldInfo eva_prev_error = null;
 
-		internal static System.Reflection.MethodInfo eva_m_HandleMovementInput = null;
-		internal static System.Reflection.MethodInfo eva_m_correctGroundedRotation = null;
-		internal static System.Reflection.MethodInfo eva_m_UpdateMovement = null;
-		internal static System.Reflection.MethodInfo eva_m_UpdateHeading = null;
-		internal static System.Reflection.MethodInfo eva_m_updateRagdollVelocities = null;
-		internal static System.Reflection.MethodInfo eva_m_UpdatePackLinear = null;
+		internal delegate void delVoidEVA(KerbalEVA @this);
+
+		internal static delVoidEVA eva_m_HandleMovementInput = null;
+		internal static delVoidEVA eva_m_correctGroundedRotation = null;
+		internal static delVoidEVA eva_m_UpdateMovement = null;
+		internal static delVoidEVA eva_m_UpdateHeading = null;
+		internal static delVoidEVA eva_m_updateRagdollVelocities = null;
+		internal static delVoidEVA eva_m_UpdatePackLinear = null;
 
 		//Kerbal EVA state members
 		internal static List<System.Reflection.FieldInfo> eva_type_kfsmstate = new List<System.Reflection.FieldInfo>();
@@ -108,17 +110,17 @@ namespace FirstPerson
 						continue;
 
 					if (m.Name == "HandleMovementInput")
-						eva_m_HandleMovementInput = tf;
+						eva_m_HandleMovementInput = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 					else if (m.Name == "correctGroundedRotation")
-						eva_m_correctGroundedRotation = tf;
+						eva_m_correctGroundedRotation = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 					else if (m.Name == "UpdateMovement")
-						eva_m_UpdateMovement = tf;
+						eva_m_UpdateMovement = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 					else if (m.Name == "UpdateHeading")
-						eva_m_UpdateHeading = tf;
+						eva_m_UpdateHeading = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 					else if (m.Name == "updateRagdollVelocities")
-						eva_m_updateRagdollVelocities = tf;
+						eva_m_updateRagdollVelocities = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 					else if (m.Name == "UpdatePackLinear")
-						eva_m_UpdatePackLinear = tf;
+						eva_m_UpdatePackLinear = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 				}
 
 			} finally {

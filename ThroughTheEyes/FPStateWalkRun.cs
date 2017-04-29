@@ -296,7 +296,7 @@ namespace FirstPerson
 
 			bool rem = FlightInputHandler.SPACENAV_USE_AS_FLIGHT_CONTROL;
 			FlightInputHandler.SPACENAV_USE_AS_FLIGHT_CONTROL = false;
-			ReflectedMembers.eva_m_HandleMovementInput.Invoke (eva, null);
+			ReflectedMembers.eva_m_HandleMovementInput(eva);
 			FlightInputHandler.SPACENAV_USE_AS_FLIGHT_CONTROL = rem;
 		}
 
@@ -323,14 +323,14 @@ namespace FirstPerson
 		{
 			DEBUG_DeltaHdg (eva, "Replacement_CorrectGroundedRotation ");
 
-			ReflectedMembers.eva_m_correctGroundedRotation.Invoke (eva, null);
+			ReflectedMembers.eva_m_correctGroundedRotation(eva);
 		}
 
 		void Replacement_UpdateMovement(KerbalEVA eva)
 		{
 			DEBUG_DeltaHdg (eva, "Replacement_UpdateMovement ");
 
-			ReflectedMembers.eva_m_UpdateMovement.Invoke (eva, null);
+			ReflectedMembers.eva_m_UpdateMovement(eva);
 		}
 			
 		KerbalEVA cachedrbeva = null;
@@ -373,7 +373,7 @@ namespace FirstPerson
 		void Replacement_UpdateRagdollVelocities(KerbalEVA eva)
 		{
 			DEBUG_DeltaHdg (eva, "Replacement_UpdateRagdollVelocities ");
-			ReflectedMembers.eva_m_updateRagdollVelocities.Invoke (eva, null);
+			ReflectedMembers.eva_m_updateRagdollVelocities(eva);
 		}
 
 		void ApplyModifiedDeltaHeading(KerbalEVA eva)
@@ -421,7 +421,7 @@ namespace FirstPerson
 			DEBUG_DeltaHdg (eva, "Grounded Replacement_UpdateHeading ");
 			Replacement_UpdateHeading (eva);
 			DEBUG_DeltaHdg (eva, "Grounded eva_m_UpdatePackLinear ");
-			ReflectedMembers.eva_m_UpdatePackLinear.Invoke (eva, null);
+			ReflectedMembers.eva_m_UpdatePackLinear(eva);
 			DEBUG_DeltaHdg (eva, "Grounded Replacement_UpdateRagdollVelocities ");
 			Replacement_UpdateRagdollVelocities (eva);
 			DEBUG_DeltaHdg (eva, "Grounded Done ");
