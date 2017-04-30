@@ -23,6 +23,7 @@ namespace FirstPerson
 		bool forceEVA;
 		KeyCode toggleFirstPersonKey;
 		KeyBinding resetivacamerabinding;
+		Vessel lastHookedVessel = null;
 
 		private const float mouseViewSensitivity = 3000f; //TODO take into account in-game mouse view sensitivity
 		public EVAIVAState state = new EVAIVAState();
@@ -45,13 +46,15 @@ namespace FirstPerson
 		
 		private void onVesselSwitching(Vessel from, Vessel to) {
 			fpCameraManager.resetCamera((Vessel)from);
-			if (((Vessel)to).isEVA) {
+			lastHookedVessel = null;
+
+			if (to != null && to.isEVA) {
 				CameraManager.Instance.SetCameraFlight();
 			}
 
 			KeyDisabler.instance.restoreAllKeys (KeyDisabler.eDisableLockSource.FirstPersonEVA);
 		}
-		
+			
 		private void onMapExited() {
 			//When exitting map view an attempt to set 1st person camera in the same update cycle is overridden with some stock camera handling
 			//so we have to set flag to reset 1st person camera a bit later
@@ -71,6 +74,7 @@ namespace FirstPerson
 			OnUpdate = null;
 			OnFixedUpdate = null;
 			OnLateUpdate = null;
+			lastHookedVessel = null;
 
 			forceEVA = ConfigUtil.ForceEVA();
 			toggleFirstPersonKey = ConfigUtil.ToggleFirstPersonKey(GameSettings.CAMERA_MODE.primary);
@@ -102,6 +106,18 @@ namespace FirstPerson
 		{
 			Vessel pVessel = FlightGlobals.ActiveVessel;
 			FlightCamera flightCam = FlightCamera.fetch;
+
+			if (pVessel == null)
+				return;
+			if (pVessel.isEVA && !pVessel.packed && pVessel.loaded && pVessel.evaController != null) {
+				if (pVessel != lastHookedVessel) {
+					lastHookedVessel = pVessel;
+
+					//KSPLog.print (string.Format("{0} switched to, hooking vessel for general hooks.", pVessel.GetName()));
+					EVABoundFix.Hook (pVessel.evaController);
+				}
+			}
+
 			if (FlightGlobals.ActiveVessel.isEVA && fpCameraManager.isFirstPerson && needCamReset) {
 				fpCameraManager.isFirstPerson = false;
 				fpCameraManager.CheckAndSetFirstPerson(pVessel);

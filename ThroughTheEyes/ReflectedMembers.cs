@@ -28,8 +28,11 @@ namespace FirstPerson
 		internal static System.Reflection.FieldInfo eva_ladderTgtRPos = null;
 		internal static System.Reflection.FieldInfo eva_integral = null;
 		internal static System.Reflection.FieldInfo eva_prev_error = null;
+		internal static System.Reflection.FieldInfo eva_halfHeight = null;
 
 		internal delegate void delVoidEVA(KerbalEVA @this);
+		internal delegate bool delBoolEVA(KerbalEVA @this);
+		internal delegate void delVoidEVABool(KerbalEVA @this, bool p1);
 
 		internal static delVoidEVA eva_m_HandleMovementInput = null;
 		internal static delVoidEVA eva_m_correctGroundedRotation = null;
@@ -37,6 +40,8 @@ namespace FirstPerson
 		internal static delVoidEVA eva_m_UpdateHeading = null;
 		internal static delVoidEVA eva_m_updateRagdollVelocities = null;
 		internal static delVoidEVA eva_m_UpdatePackLinear = null;
+		internal static delBoolEVA eva_m_SurfaceOrSplashed = null;
+		internal static delVoidEVABool eva_m_ToggleJetpackBool = null;
 
 		//Kerbal EVA state members
 		internal static List<System.Reflection.FieldInfo> eva_type_kfsmstate = new List<System.Reflection.FieldInfo>();
@@ -98,6 +103,8 @@ namespace FirstPerson
 						eva_integral = tf;
 					else if (m.Name == "prev_error")
 						eva_prev_error = tf;
+					else if (m.Name == "halfHeight")
+						eva_halfHeight = tf;
 
 					if (tf.FieldType == typeof(KFSMState))
 						eva_type_kfsmstate.Add (tf);
@@ -121,6 +128,12 @@ namespace FirstPerson
 						eva_m_updateRagdollVelocities = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
 					else if (m.Name == "UpdatePackLinear")
 						eva_m_UpdatePackLinear = (delVoidEVA)Delegate.CreateDelegate(typeof(delVoidEVA), null, tf);
+					else if (m.Name == "SurfaceOrSplashed")
+						eva_m_SurfaceOrSplashed = (delBoolEVA)Delegate.CreateDelegate(typeof(delBoolEVA), null, tf);
+
+
+					else if (m.Name == "ToggleJetpack" && tf.GetParameters().Length == 1)
+						eva_m_ToggleJetpackBool = (delVoidEVABool)Delegate.CreateDelegate(typeof(delVoidEVABool), null, tf);
 				}
 
 			} finally {

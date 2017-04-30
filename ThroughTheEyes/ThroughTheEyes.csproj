@@ -62,6 +62,7 @@
     <Compile Include="FPStateFloating.cs" />
     <Compile Include="Helpers.cs" />
     <Compile Include="FPStateWalkRun.cs" />
+    <Compile Include="EVABoundFix.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
