@@ -33,14 +33,14 @@ namespace FirstPerson
         }
 
 		void disableKeys() {
-			keyDisabler.disableKey(KeyDisabler.CAMERA_MODE);
+			keyDisabler.disableKey(KeyDisabler.eKeyCommand.CAMERA_MODE, KeyDisabler.eDisableLockSource.MainModule);
 			if (CameraManager.Instance.currentCameraMode == IVA && !FlightGlobals.ActiveVessel.isEVA && FlightGlobals.ActiveVessel.GetCrewCount() < 2) {
-				keyDisabler.disableKey(KeyDisabler.CAMERA_NEXT);
+				keyDisabler.disableKey(KeyDisabler.eKeyCommand.CAMERA_NEXT, KeyDisabler.eDisableLockSource.MainModule);
 			} else {
-				keyDisabler.restoreKey(KeyDisabler.CAMERA_NEXT);
+				keyDisabler.restoreKey(KeyDisabler.eKeyCommand.CAMERA_NEXT, KeyDisabler.eDisableLockSource.MainModule);
 			}
 			if (disableMapView) {
-				keyDisabler.disableKey(KeyDisabler.MAP_VIEW);
+				keyDisabler.disableKey(KeyDisabler.eKeyCommand.MAP_VIEW, KeyDisabler.eDisableLockSource.MainModule);
 			}
 		}
 
@@ -83,10 +83,41 @@ namespace FirstPerson
 			}        	
         }
 
+		//Flight -> IVA
+		void OnCameraChange(CameraManager.CameraMode m){
+			if (CameraManager.Instance == null)
+				return;
+			
+			if (m == CameraManager.CameraMode.IVA) {
+				Kerbal k = CameraManager.Instance.IVACameraActiveKerbal;
+				if (k.InPart == null || string.IsNullOrEmpty(k.InPart.partInfo.title))
+					ScreenMessages.PostScreenMessage ("IVA: " + k.crewMemberName, 5f, ScreenMessageStyle.UPPER_CENTER);
+				else
+					ScreenMessages.PostScreenMessage (string.Format("IVA: {0} ({1})", k.crewMemberName, k.InPart.partInfo.title), 5f, ScreenMessageStyle.UPPER_CENTER);
+			}
+		}
+
+		//IVA -> IVA
+		void OnIVACameraKerbalChange(Kerbal k){
+			if (CameraManager.Instance == null)
+				return;
+			
+			//NOTE NOTE NOTE
+			//As of KSP 1.2.2, OnIVACameraKerbalChange first sets the next kerbal, then
+			//sends out this event with the NEXT next kerbal. Whoops. We have to look at who is IVA ourselves.
+			k = CameraManager.Instance.IVACameraActiveKerbal;
+			if (k != null && k.crewMemberName != null) {
+				if (k.InPart == null || string.IsNullOrEmpty (k.InPart.partInfo.title))
+					ScreenMessages.PostScreenMessage ("IVA: " + k.crewMemberName, 5f, ScreenMessageStyle.UPPER_CENTER);
+				else
+					ScreenMessages.PostScreenMessage (string.Format ("IVA: {0} ({1})", k.crewMemberName, k.InPart.partInfo.title), 5f, ScreenMessageStyle.UPPER_CENTER);
+			}
+		}
+
         void Start()
         {
 
-			keyDisabler = KeyDisabler.initialize();
+			keyDisabler = KeyDisabler.instance;
 			
             /*GameEvents.onLaunch.Add((v) =>
             {
@@ -94,6 +125,8 @@ namespace FirstPerson
             });*/
 
 			GameEvents.onVesselChange.Add(onVesselChange);
+			GameEvents.OnCameraChange.Add(OnCameraChange);
+			GameEvents.OnIVACameraKerbalChange.Add(OnIVACameraKerbalChange);
 
 			reviewDataKey = ConfigUtil.checkKeys();
 			forceIVA = ConfigUtil.ForceIVA();
@@ -116,8 +149,8 @@ namespace FirstPerson
                     }
                     if (!externalMaintenainceAvailable(pVessel)) {
 						disableKeys();
-					} else if (keyDisabler.keysDisabled) {
-						keyDisabler.restoreAllKeys();
+					} else {
+						keyDisabler.restoreAllKeys(KeyDisabler.eDisableLockSource.MainModule);
 					}
                     if (GameSettings.MODIFIER_KEY.GetKey() && Input.GetKeyDown(EVAKey)) {
 						KeyControls.GoEVA();

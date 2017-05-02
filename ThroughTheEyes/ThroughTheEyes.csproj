@@ -29,14 +29,14 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="UnityEngine">
-      <HintPath>..\..\Managed\UnityEngine.dll</HintPath>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>..\..\Managed\Assembly-CSharp.dll</HintPath>
     </Reference>
     <Reference Include="UnityEngine.UI">
       <HintPath>..\..\Managed\UnityEngine.UI.dll</HintPath>
     </Reference>
-    <Reference Include="Assembly-CSharp">
-      <HintPath>..\..\Managed\Assembly-CSharp.dll</HintPath>
+    <Reference Include="UnityEngine">
+      <HintPath>..\..\Managed\UnityEngine.dll</HintPath>
     </Reference>
   </ItemGroup>
   <ItemGroup>
@@ -50,6 +50,14 @@
     <Compile Include="ThroughTheEyes.cs" />
     <Compile Include="FirstPersonEVA.cs" />
     <Compile Include="KeyDisabler.cs" />
+    <Compile Include="EVAIVAState.cs" />
+    <Compile Include="ReflectedMembers.cs" />
+    <Compile Include="HookedKerbalFSMState.cs" />
+    <Compile Include="FPNavBall.cs" />
+    <Compile Include="FPStateFloating.cs" />
+    <Compile Include="Helpers.cs" />
+    <Compile Include="FPStateWalkRun.cs" />
+    <Compile Include="EVABoundFix.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
 </Project>
